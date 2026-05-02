@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Symposium Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --primary:#4f46e5;
+  --primary-dark:#3730a3;
+  --primary-light:#eef2ff;
+  --accent:#06b6d4;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --sidebar-bg:#0f172a;
+  --sidebar-text:#94a3b8;
+  --sidebar-hover:rgba(255,255,255,0.05);
+  --sidebar-active:rgba(79,70,229,0.2);
+}
+
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* ─── AUTH ─── */
+#auth-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--sidebar-bg);
+  position:relative;
+  overflow:hidden;
+}
+#auth-screen::before{
+  content:'';
+  position:absolute;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(79,70,229,0.25) 0%,transparent 70%);
+  top:-100px;left:-100px;
+  pointer-events:none;
+}
+#auth-screen::after{
+  content:'';
+  position:absolute;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(6,182,212,0.15) 0%,transparent 70%);
+  bottom:-100px;right:-100px;
+  pointer-events:none;
+}
+
+.auth-box{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(20px);
+  border-radius:20px;
+  padding:40px;
+  width:440px;
+  position:relative;
+  z-index:1;
+  animation:fadeUp 0.5s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.auth-logo{
+  text-align:center;
+  margin-bottom:32px;
+}
+.auth-logo .logo-icon{
+  width:56px;height:56px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  border-radius:16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  margin-bottom:12px;
+}
+.auth-logo h1{
+  font-size:1.4rem;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:-0.5px;
+}
+.auth-logo p{color:var(--sidebar-text);font-size:0.85rem;margin-top:4px;}
+
+.role-tabs{
+  display:flex;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;
+  padding:4px;
+  margin-bottom:28px;
+  gap:2px;
+}
+.role-tab{
+  flex:1;
+  padding:9px 4px;
+  border:none;
+  background:transparent;
+  color:var(--sidebar-text);
+  border-radius:9px;
+  cursor:pointer;
+  font-size:0.82rem;
+  font-weight:600;
+  font-family:inherit;
+  transition:all 0.2s;
+}
+.role-tab.active{
+  background:var(--primary);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(79,70,229,0.4);
+}
+.role-tab:not(.active):hover{background:rgba(255,255,255,0.06);color:#fff;}
+
+.form-group{margin-bottom:16px;}
+.form-group label{
+  display:block;
+  font-size:0.78rem;
+  font-weight:600;
+  color:var(--sidebar-text);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  margin-bottom:6px;
+}
+.form-group input{
+  width:100%;
+  padding:11px 14px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  color:#fff;
+  font-size:0.92rem;
+  font-family:inherit;
+  outline:none;
+  transition:border-color 0.2s,background 0.2s;
+}
+.form-group input::placeholder{color:rgba(255,255,255,0.25);}
+.form-group input:focus{
+  border-color:var(--primary);
+  background:rgba(79,70,229,0.1);
+}
+
+.btn-auth{
+  width:100%;
+  padding:12px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:0.95rem;
+  font-weight:700;
+  font-family:inherit;
+  cursor:pointer;
+  transition:all 0.2s;
+  margin-top:4px;
+}
+.btn-auth:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,0.4);}
+.btn-auth:active{transform:translateY(0);}
+
+.auth-error{
+  margin-top:12px;
+  padding:10px 14px;
+  background:rgba(239,68,68,0.15);
+  border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px;
+  color:#fca5a5;
+  font-size:0.85rem;
+  display:none;
+}
+
+/* ─── APP ─── */
+#app-screen{display:none;min-height:100vh;flex-direction:row;}
+
+.sidebar{
+  width:250px;
+  min-height:100vh;
+  background:var(--sidebar-bg);
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:50;
+}
+.sidebar-brand{
+  padding:22px 20px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.sidebar-brand .brand-row{
+  display:flex;align-items:center;gap:10px;
+}
+.brand-icon{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+}
+.brand-name{
+  font-size:1rem;font-weight:800;color:#fff;letter-spacing:-0.3px;
+}
+.brand-sub{font-size:0.72rem;color:var(--sidebar-text);}
+
+.user-pill{
+  margin-top:14px;
+  background:rgba(255,255,255,0.05);
+  border-radius:10px;
+  padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+}
+.user-avatar{
+  width:34px;height:34px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.avatar-admin{background:linear-gradient(135deg,#f59e0b,#d97706);}
+.avatar-dept{background:linear-gradient(135deg,#10b981,#059669);}
+.avatar-part{background:linear-gradient(135deg,#06b6d4,#0891b2);}
+
+.user-info-text .uname{font-size:0.85rem;font-weight:700;color:#fff;}
+.user-info-text .urole{
+  font-size:0.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.5px;
+  margin-top:1px;
+}
+.role-admin{color:#fbbf24;}
+.role-dept{color:#34d399;}
+.role-part{color:#22d3ee;}
+
+.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto;}
+.nav-section-label{
+  font-size:0.65rem;font-weight:700;color:rgba(148,163,184,0.5);
+  text-transform:uppercase;letter-spacing:1px;
+  padding:8px 10px 4px;
+  margin-top:4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  color:var(--sidebar-text);
+  font-size:0.88rem;font-weight:500;
+  transition:all 0.15s;
+  margin-bottom:2px;
+}
+.nav-item:hover{background:var(--sidebar-hover);color:#fff;}
+.nav-item.active{
+  background:var(--sidebar-active);
+  color:#fff;
+  font-weight:700;
+}
+.nav-item.active .nav-icon-wrap{color:var(--primary);}
+.nav-icon-wrap{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+
+.sidebar-footer{
+  padding:14px 20px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.logout-btn{
+  display:flex;align-items:center;gap:8px;
+  color:#f87171;cursor:pointer;
+  font-size:0.85rem;font-weight:600;
+  padding:8px 4px;
+  transition:color 0.15s;
+  font-family:inherit;background:none;border:none;width:100%;
+}
+.logout-btn:hover{color:var(--danger);}
+
+/* ─── MAIN ─── */
+.main-content{
+  margin-left:250px;
+  flex:1;
+  padding:32px;
+  min-height:100vh;
+}
+
+.page-header{margin-bottom:28px;}
+.page-header h2{
+  font-size:1.65rem;font-weight:800;
+  color:var(--text);letter-spacing:-0.5px;
+}
+.page-header p{color:var(--muted);margin-top:5px;font-size:0.9rem;}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:24px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom:20px;
+}
+.card-title{
+  font-size:0.92rem;font-weight:700;
+  color:var(--text);
+  margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.card-title .ct-icon{
+  width:28px;height:28px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.9rem;
+}
+.ct-blue{background:#eef2ff;color:var(--primary);}
+.ct-green{background:#f0fdf4;color:var(--success);}
+.ct-red{background:#fef2f2;color:var(--danger);}
+.ct-yellow{background:#fffbeb;color:var(--warning);}
+.ct-cyan{background:#ecfeff;color:var(--accent);}
+
+/* ─── STATS ─── */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:16px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px 20px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';
+  position:absolute;top:0;right:0;
+  width:60px;height:60px;
+  border-radius:50%;
+  opacity:0.08;transform:translate(15px,-15px);
+}
+.stat-blue::before{background:var(--primary);}
+.stat-green::before{background:var(--success);}
+.stat-cyan::before{background:var(--accent);}
+.stat-yellow::before{background:var(--warning);}
+
+.stat-num{font-size:1.8rem;font-weight:800;letter-spacing:-1px;}
+.stat-label{font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;}
+.stat-icon{position:absolute;top:14px;right:14px;font-size:1.2rem;opacity:0.2;}
+.c-blue{color:var(--primary);}
+.c-green{color:var(--success);}
+.c-cyan{color:var(--accent);}
+.c-yellow{color:var(--warning);}
+
+/* ─── FORM ─── */
+.fg{margin-bottom:14px;}
+.fg label{
+  display:block;font-size:0.78rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;
+  margin-bottom:5px;
+}
+
+.fg label.req::after{content:" *";color:#ef4444;font-weight:900;}
+input.invalid,select.invalid,textarea.invalid{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.12)!important;}
+
+.fg input,.fg select,.fg textarea{
+  width:100%;
+  padding:10px 13px;
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  font-size:0.9rem;color:var(--text);
+  background:#fff;font-family:inherit;
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(79,70,229,0.08);
+}
+.fg select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-row .full{grid-column:1/-1;}
+
+/* ─── BUTTONS ─── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 18px;border:none;border-radius:9px;
+  font-size:0.88rem;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all 0.18s;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 14px rgba(79,70,229,0.3);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{background:#059669;box-shadow:0 4px 14px rgba(16,185,129,0.3);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{background:#dc2626;box-shadow:0 4px 14px rgba(239,68,68,0.3);}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+.btn-sm{padding:7px 13px;font-size:0.82rem;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+/* ─── TABLE ─── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:0.87rem;}
+thead th{
+  padding:11px 14px;
+  font-size:0.72rem;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  text-align:left;
+}
+tbody td{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);vertical-align:middle;
+}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f8faff;}
+
+/* ─── BADGES ─── */
+.badge{
+  display:inline-block;padding:3px 10px;
+  border-radius:20px;font-size:0.72rem;font-weight:700;
+}
+.badge-tech{background:#eef2ff;color:var(--primary);}
+.badge-nontech{background:#ecfeff;color:var(--accent);}
+.badge-enrolled{background:#f0fdf4;color:var(--success);}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;top:20px;right:20px;
+  padding:13px 20px;border-radius:10px;
+  color:#fff;font-size:0.88rem;font-weight:600;
+  z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  animation:slideIn 0.3s ease;max-width:340px;
+}
+.toast-success{background:var(--success);}
+.toast-error{background:var(--danger);}
+.toast-info{background:var(--primary);}
+@keyframes slideIn{
+  from{transform:translateX(120%);opacity:0;}
+  to{transform:translateX(0);opacity:1;}
+}
+
+/* ─── RESPONSE AREA ─── */
+.res-area{
+  margin-top:14px;padding:14px;
+  border-radius:9px;font-size:0.85rem;
+  display:none;
+  font-family:'JetBrains Mono',monospace;
+  line-height:1.7;white-space:pre-wrap;word-break:break-word;
+}
+.res-area.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+.res-area.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+
+/* ─── MODAL ─── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.5);
+  backdrop-filter:blur(4px);
+  z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex;}
+.modal-box{
+  background:#fff;border-radius:16px;
+  padding:28px;width:500px;max-width:95vw;
+  max-height:92vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  animation:fadeUp 0.25s ease;
+}
+.modal-box.register-modal{width:min(860px,95vw);}
+.register-payment-panel{grid-column:1/-1;padding:16px;border-radius:16px;background:#f8fafc;border:1px solid var(--border);}
+.register-payment-panel h4{margin:0 0 8px;font-size:.9rem;text-transform:uppercase;letter-spacing:.6px;color:#334155;}
+.payment-total-chip{display:inline-flex;align-items:center;gap:8px;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;border-radius:999px;padding:8px 12px;font-weight:800;margin:8px 0 12px;}
+.payment-block{margin-top:10px;}
+.modal-box.event-modal{width:min(1200px,96vw);}
+.modal-box.event-modal .modal-title{font-size:1.15rem;font-weight:900;}
+.modal-box.event-modal .event-card{border:none;background:#fff;box-shadow:none;}
+.modal-box.event-modal .event-card-body{padding:0;}
+.modal-box.event-modal .poster-frame{border-radius:18px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-title{font-size:1rem;font-weight:700;}
+.modal-close{
+  background:none;border:none;cursor:pointer;
+  font-size:1.2rem;color:var(--muted);padding:2px;
+}
+.modal-close:hover{color:var(--text);}
+
+/* ─── SPINNER ─── */
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(255,255,255,0.4);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.65s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{
+  text-align:center;padding:48px 24px;
+  color:var(--muted);
+}
+.empty-icon{font-size:2.8rem;display:block;margin-bottom:12px;}
+
+/* ─── INFO BOX ─── */
+.info-box{
+  background:var(--primary-light);
+  border:1px solid #c7d2fe;
+  border-radius:10px;
+  padding:14px 16px;
+  font-size:0.86rem;color:var(--primary);
+  margin-bottom:18px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.success-box{
+  background:#f0fdf4;border:1px solid #bbf7d0;
+  border-radius:12px;padding:18px 20px;
+  color:#166534;font-size:0.88rem;
+}
+
+/* ─── EDIT OPTIONS ─── */
+.edit-options{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.edit-option-btn{
+  padding:10px 16px;
+  background:#fff;border:2px solid var(--border);
+  border-radius:10px;cursor:pointer;
+  font-size:0.85rem;font-weight:600;
+  font-family:inherit;color:var(--muted);
+  transition:all 0.18s;
+  display:flex;align-items:center;gap:6px;
+}
+.edit-option-btn:hover,.edit-option-btn.active{
+  border-color:var(--primary);color:var(--primary);
+  background:var(--primary-light);
+}
+
+/* ─── SECTION ─── */
+.section{display:none;}
+.section.active{display:block;animation:fadeUp 0.2s ease;}
+
+/* ─── PARTICIPANT PROFILE CARD ─── */
+.profile-card{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  border-radius:14px;padding:24px;color:#fff;margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.profile-card::after{
+  content:'🎓';font-size:5rem;
+  position:absolute;right:-10px;bottom:-10px;opacity:0.1;
+}
+.profile-name{font-size:1.3rem;font-weight:800;}
+.profile-meta{opacity:0.75;font-size:0.85rem;margin-top:4px;}
+.profile-id{
+  display:inline-block;
+  background:rgba(255,255,255,0.15);
+  border-radius:6px;padding:3px 10px;
+  font-size:0.78rem;font-family:'JetBrains Mono',monospace;
+  margin-top:10px;font-weight:600;
+}
+.profile-details{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;
+}
+.profile-det-item{
+  background:rgba(255,255,255,0.1);
+  border-radius:8px;padding:10px 12px;
+}
+.profile-det-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;opacity:0.65;}
+.profile-det-val{font-size:0.9rem;font-weight:700;margin-top:2px;}
+
+/* ─── UPDATED EVENT POSTER UI ─── */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:24px;}
+.event-card{background:linear-gradient(180deg,#ffffff,#f8fbff);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(15,23,42,.08);transition:.25s;}
+.event-card:hover{transform:translateY(-5px);box-shadow:0 22px 55px rgba(15,23,42,.14);}
+.poster-frame{width:100%;aspect-ratio:16/9;min-height:240px;background:radial-gradient(circle at 20% 20%,rgba(6,182,212,.35),transparent 35%),linear-gradient(135deg,#0f172a,#111827 55%,#312e81);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.poster-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.42));pointer-events:none;}
+.poster-frame img{width:100%;height:100%;object-fit:contain;background:#020617;padding:8px;position:relative;z-index:1;}
+.poster-fallback{color:white;text-align:center;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;position:relative;z-index:1;background:radial-gradient(circle at top right,rgba(6,182,212,.55),transparent 30%),linear-gradient(135deg,#020617,#0f172a,#3730a3);}
+.poster-fallback .big{font-size:2.3rem;font-weight:900;line-height:1.05;text-transform:uppercase;letter-spacing:-1px;}
+.poster-fallback .small{margin-top:14px;color:#67e8f9;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:.78rem;}
+.event-card-body{padding:18px;}
+.event-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px;}
+.event-chip{font-size:.72rem;font-weight:800;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;}
+.event-card h3{font-size:1.15rem;margin:0 0 6px;font-weight:900;}
+.event-card p{color:var(--muted);font-size:.88rem;line-height:1.5;}
+.enroll-panel{margin:18px 0;padding:18px;border-radius:18px;background:#f8fafc;border:1px solid var(--border);}
+.event-detail-layout{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start;}
+.event-detail-poster .poster-frame{min-height:340px;max-height:560px;}
+.event-detail-section{padding:18px;border-radius:18px;background:#f8fafc;border:1px solid var(--border);margin-top:16px;}
+.event-detail-section h4{margin:0 0 10px;font-size:.9rem;text-transform:uppercase;letter-spacing:.6px;color:#334155;}
+.event-detail-text{color:var(--muted);line-height:1.65;white-space:pre-wrap;}
+.contact-section{background:#020617;color:#e2e8f0;}
+.contact-section h4{color:#67e8f9;}
+.contact-section p{color:#cbd5e1;}
+@media(max-width:900px){.event-grid{grid-template-columns:1fr}.event-detail-layout{grid-template-columns:1fr}.poster-frame{min-height:190px}}
+.auth-switch{margin-top:14px;text-align:center;color:var(--sidebar-text);font-size:.86rem;}
+.auth-switch a{color:#a5b4fc;font-weight:800;text-decoration:none;}
+
+</style>
+</head>
+<body>
+
+<!-- ══════════ AUTH ══════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-icon">🎓</div>
+      <h1>National Engineering College</h1>
+      <p>Symposium</p>
+    </div>
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole('admin',this)">🔐 Admin</button>
+      <button class="role-tab" onclick="setRole('dept',this)">🏛️ Department</button>
+      <button class="role-tab" onclick="setRole('participant',this)">🎓 Participant</button>
+    </div>
+    <div class="form-group">
+      <label id="auth-user-label">Username</label>
+      <input type="text" id="auth-user" required placeholder="Enter username" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="auth-pass" required placeholder="Enter password" autocomplete="current-password"/>
+    </div>
+    <button class="btn-auth" onclick="doLogin()" id="auth-btn">Sign In</button>
+    <div class="auth-switch" id="participant-signup-link">Participant new user? <a href="#" onclick="openRegister(encodeURIComponent(document.getElementById('auth-user').value.trim()))">Sign up here</a></div>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app-screen">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <div class="brand-name">National Engineering College</div>
+          <div class="brand-sub">Symposium</div>
+        </div>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar" id="sb-avatar">A</div>
+        <div class="user-info-text">
+          <div class="uname" id="sb-uname">—</div>
+          <div class="urole" id="sb-role">—</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content" id="main-content"></main>
+</div>
+
+<!-- ══════════ EDIT MODAL ══════════ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="edit-modal-title">Edit Details</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="edit-modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ STATE ═══════════════ */
+const S = { role: null, username: null, password: null, loginRole: 'admin', deptId: null };
+const BASE = '/api';
+let selectedEventForEnroll = null;
+let selectedEditEvent = null;
+
+/* ═══════════════ TOAST ═══════════════ */
+function toast(msg, type='info'){
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ═══════════════ AUTH ═══════════════ */
+function setRole(role, btn){
+  S.loginRole = role;
+  document.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const labels = {admin:'Username',dept:'Department Username',participant:'Name / Username'};
+  document.getElementById('auth-user-label').textContent = labels[role] || 'Username';
+  document.getElementById('auth-error').style.display = 'none';
+  const su = document.getElementById('participant-signup-link'); if(su) su.style.display = role==='participant' ? 'block' : 'none';
+  document.getElementById('auth-user').value = '';
+  document.getElementById('auth-pass').value = '';
+}
+
+function showAuthError(msg){
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogin(){
+  const user = document.getElementById('auth-user').value.trim();
+  const pass = document.getElementById('auth-pass').value.trim();
+  if(!user || !pass){ showAuthError('Please fill in all fields.'); return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  btn.disabled = true;
+
+  try {
+    if(S.loginRole === 'admin'){
+      await apiReq('POST','/admin/login',{username:user,password:pass},{});
+      S.role = 'admin'; S.username = user; S.password = pass;
+    } else if(S.loginRole === 'dept'){
+      const r = await apiReq('POST','/department/login',{username:user,password:pass},{});
+      S.role = 'dept'; S.username = user; S.password = pass;
+      S.deptId = r.departmentId; S.deptName = r.departmentName;
+    } else {
+      // Participant password format: registered name + first 3 digits of phone number
+      const r = await apiReq('POST','/participants/login',{username:user,password:pass},{});
+      S.role = 'participant'; S.username = user; S.password = pass;
+      S.participantId = r.participantId;
+      S.participantName = r.name;
+    }
+    toast('Welcome, ' + user + '!', 'success');
+    launchApp();
+  } catch(e){
+    showAuthError(e.message || 'Invalid credentials.');
+  } finally {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{ const su=document.getElementById('participant-signup-link'); if(su) su.style.display='none'; });
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') doLogin();
+});
+
+function doLogout(){
+  S.role = null; S.username = null; S.password = null; S.deptId = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-user').value = '';
+  document.getElementById('auth-pass').value = '';
+  document.getElementById('auth-error').style.display = 'none';
+  toast('Logged out.','info');
+}
+
+/* ═══════════════ API ═══════════════ */
+async function apiReq(method, path, body, extraHeaders={}){
+  const opts = {
+    method,
+    headers:{'Content-Type':'application/json',...extraHeaders}
+  };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(BASE + path, opts);
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok) throw data;
+  return data;
+}
+
+function adminH(){ return {'X-Username':S.username,'X-Password':S.password}; }
+function deptH(){  return {'X-Username':S.username,'X-Password':S.password}; }
+
+function parseJsonArraySafe(value){
+  if(!value) return [];
+  if(Array.isArray(value)) return value;
+  try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; }
+  catch(e){ return []; }
+}
+
+function notificationCardsHtml(p){
+  const notes = parseJsonArraySafe(p.notificationsJson).slice(0,6);
+  if(!notes.length) return `<div class="empty-state"><span class="empty-icon">🔔</span>No notifications yet.</div>`;
+  return `<div style="display:grid;gap:10px">${notes.map(n=>`
+    <div class="info-box">
+      <strong>🔔 Update</strong><br/>
+      <span>${n.message || 'Event update'}</span><br/>
+      <small style="color:var(--muted)">${(n.createdAt||'').replace('T',' ').slice(0,16)}</small>
+    </div>`).join('')}</div>`;
+}
+
+function paymentHistoryHtml(p){
+  const payments = parseJsonArraySafe(p.paymentHistoryJson).slice(0,5);
+  if(!payments.length) return `<div class="empty-state"><span class="empty-icon">💳</span>No payment records yet.</div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Purpose</th><th>Method</th><th>Status</th><th>Amount</th><th>Paid At</th></tr></thead>
+    <tbody>${payments.map(pay=>`<tr>
+      <td>${pay.purpose||pay.eventName||'Symposium Registration'}</td><td>${pay.method||'—'}</td><td><span class="badge badge-enrolled">${pay.status||'PAID'}</span></td>
+      <td>Rs.${pay.amount||'0'}</td><td>${(pay.paidAt||'').replace('T',' ').slice(0,16)}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+function latestPaymentMethod(p){
+  const payments = parseJsonArraySafe(p.paymentHistoryJson);
+  return payments.length ? (payments[0].method || '—') : 'Not paid';
+}
+function latestPaymentAmount(p){
+  const payments = parseJsonArraySafe(p.paymentHistoryJson);
+  return payments.length ? `Rs.${payments[0].amount || '0'}` : '—';
+}
+
+function paymentFieldsHtml(prefix, amountValue=750, readonlyAmount=true){
+  return `
+    <div class="event-detail-section" style="margin-top:14px">
+      <h4>Payment Details</h4>
+      <div class="info-box">Symposium fee is Rs.750. Accommodation fee, if selected, is added automatically.</div>
+      <div class="form-row">
+        <div class="fg"><label class="req">Payment Method</label>
+          <select id="${prefix}-method" onchange="togglePaymentFields('${prefix}')">
+            <option value="UPI">UPI</option>
+            <option value="CARD">Card</option>
+          </select>
+        </div>
+        <div class="fg"><label class="req">Total Amount</label><input id="${prefix}-amount" type="number" min="0" value="${amountValue}" ${readonlyAmount?'readonly':''}/></div>
+      </div>
+      <div id="${prefix}-upi" class="payment-block">
+        <div class="form-row">
+          <div class="fg"><label class="req">UPI ID</label><input id="${prefix}-upi-id" placeholder="name@bank"/></div>
+          <div class="fg"><label class="req">UPI Transaction ID</label><input id="${prefix}-upi-txn" placeholder="Txn reference number"/></div>
+        </div>
+      </div>
+      <div id="${prefix}-card" class="payment-block" style="display:none">
+        <div class="form-row">
+          <div class="fg"><label class="req">Card Holder Name</label><input id="${prefix}-card-holder" placeholder="Name on card"/></div>
+          <div class="fg"><label class="req">Card Number</label><input id="${prefix}-card-number" maxlength="19" placeholder="1234 5678 9012 3456"/></div>
+          <div class="fg"><label class="req">Expiry</label><input id="${prefix}-card-expiry" placeholder="MM/YY"/></div>
+          <div class="fg"><label class="req">CVV</label><input id="${prefix}-card-cvv" type="password" maxlength="4" placeholder="123"/></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function togglePaymentFields(prefix){
+  const method = fieldValue(`${prefix}-method`) || 'UPI';
+  ['upi','card'].forEach(k=>{
+    const el = document.getElementById(`${prefix}-${k}`);
+    if(el) el.style.display = method.toLowerCase() === k ? 'block' : 'none';
+  });
+}
+
+function collectPayment(prefix, resId){
+  const method = fieldValue(`${prefix}-method`);
+  const amount = fieldValue(`${prefix}-amount`);
+  if(amount === '' || Number(amount) < 0){ showRes(resId,'Payment amount is mandatory and cannot be negative.',true); return null; }
+  const details = { amount };
+  if(method === 'UPI'){
+    if(!requireFields([[`${prefix}-upi-id`,'UPI ID'],[`${prefix}-upi-txn`,'UPI Transaction ID']], resId)) return null;
+    details.upiId = fieldValue(`${prefix}-upi-id`);
+    details.transactionId = fieldValue(`${prefix}-upi-txn`);
+  } else if(method === 'CARD'){
+    if(!requireFields([[`${prefix}-card-holder`,'Card Holder Name'],[`${prefix}-card-number`,'Card Number'],[`${prefix}-card-expiry`,'Expiry'],[`${prefix}-card-cvv`,'CVV']], resId)) return null;
+    details.cardHolder = fieldValue(`${prefix}-card-holder`);
+    details.cardNumber = fieldValue(`${prefix}-card-number`);
+    details.expiry = fieldValue(`${prefix}-card-expiry`);
+    details.cvv = fieldValue(`${prefix}-card-cvv`);
+  } else {
+    showRes(resId,'Unsupported payment method. Choose UPI or Card.',true);
+    return null;
+  }
+  return { method, details };
+}
+
+function fileToDataUrl(inputId, hiddenId, resId){
+  const hidden = document.getElementById(hiddenId);
+  const file = document.getElementById(inputId)?.files?.[0];
+  if(!file) return Promise.resolve(hidden?.value || '');
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{ if(hidden) hidden.value = reader.result || ''; resolve(reader.result || ''); };
+    reader.onerror = ()=>reject(new Error('Could not read selected image.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════ APP LAYOUT ═══════════════ */
+function launchApp(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+
+  // Sidebar user info
+  document.getElementById('sb-uname').textContent = S.username;
+  const roleMap = {admin:'Administrator',dept:'Department',participant:'Participant'};
+  const avatar = document.getElementById('sb-avatar');
+  const roleEl = document.getElementById('sb-role');
+  if(S.role==='admin'){
+    avatar.className='user-avatar avatar-admin'; avatar.textContent='A';
+    roleEl.className='urole role-admin'; roleEl.textContent='Administrator';
+  } else if(S.role==='dept'){
+    avatar.className='user-avatar avatar-dept'; avatar.textContent='D';
+    roleEl.className='urole role-dept'; roleEl.textContent='Department';
+  } else {
+    avatar.className='user-avatar avatar-part'; avatar.textContent='P';
+    roleEl.className='urole role-part'; roleEl.textContent='Participant';
+  }
+
+  buildNav();
+  goTo(navDefs()[0].id);
+}
+
+function navDefs(){
+  if(S.role==='admin') return [
+    {id:'dash',    icon:'🏠', label:'Dashboard'},
+    {id:'depts',   icon:'🏛️', label:'Departments'},
+    {id:'events',  icon:'📅', label:'All Events'},
+    {id:'participants', icon:'👥', label:'All Participants'},
+  ];
+  if(S.role==='dept') return [
+    {id:'dept-dash',  icon:'🏠', label:'Dashboard'},
+    {id:'dept-events',icon:'📅', label:'My Events'},
+    {id:'dept-add',   icon:'➕', label:'Add Event'},
+    {id:'dept-parts', icon:'👥', label:'My Participants'},
+  ];
+  return [
+    {id:'part-profile', icon:'👤', label:'My Profile'},
+    {id:'part-events',  icon:'📅', label:'Browse Events'},
+    {id:'part-enrolled',icon:'✅', label:'My Enrollments'},
+    {id:'part-edit',    icon:'✏️', label:'Edit Details'},
+  ];
+}
+
+function buildNav(){
+  document.getElementById('sidebar-nav').innerHTML = navDefs().map(n =>
+    `<div class="nav-item" id="nav-${n.id}" onclick="goTo('${n.id}')">
+      <span class="nav-icon-wrap">${n.icon}</span>${n.label}
+    </div>`
+  ).join('');
+}
+
+function goTo(id){
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const nav = document.getElementById(`nav-${id}`);
+  if(nav) nav.classList.add('active');
+  renderSection(id);
+}
+
+/* ═══════════════ RENDER ROUTER ═══════════════ */
+async function renderSection(id){
+  const mc = document.getElementById('main-content');
+  switch(id){
+    case 'dash':         await renderAdminDash(mc); break;
+    case 'depts':        await renderDepts(mc);      break;
+    case 'events':       await renderAllEvents(mc);  break;
+    case 'participants': await renderAllParts(mc);   break;
+    case 'dept-dash':    await renderDeptDash(mc);   break;
+    case 'dept-events':  await renderDeptEvents(mc); break;
+    case 'dept-add':     renderDeptAdd(mc);          break;
+    case 'dept-parts':   await renderDeptParts(mc);  break;
+    case 'part-profile': await renderPartProfile(mc);break;
+    case 'part-events':  await renderPartEvents(mc); break;
+    case 'part-enrolled':await renderPartEnrolled(mc);break;
+    case 'part-edit':    renderPartEdit(mc);         break;
+  }
+}
+
+/* ════════════════════════════════
+   ADMIN SECTIONS
+════════════════════════════════ */
+async function renderAdminDash(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Dashboard</h2><p>System overview</p></div>
+    <div class="stats-row" id="stats-row">
+      ${['…','…','…','…','…','…'].map(()=>`<div class="stat-card"><div class="stat-num">…</div><div class="stat-label">Loading</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-blue">📅</span>Recent Events</div>
+      <div id="dash-events-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+
+  try {
+    const [deptRes, eventRes, partRes] = await Promise.all([
+      apiReq('GET','/admin/departments',null,adminH()),
+      apiReq('GET','/admin/events',null,adminH()),
+      apiReq('GET','/admin/participants',null,adminH())
+    ]);
+    const depts = Array.isArray(deptRes) ? deptRes : [];
+    const evs = Array.isArray(eventRes) ? eventRes : [];
+    const parts = Array.isArray(partRes) ? partRes : [];
+    const tech = evs.filter(e=>e.category==='TECHNICAL').length;
+    const workshop = evs.filter(e=>e.category==='WORKSHOP').length;
+    const nonTech = evs.length - tech - workshop;
+
+    document.getElementById('stats-row').innerHTML = `
+      <div class="stat-card stat-blue"><div class="stat-icon">🏛️</div><div class="stat-num c-blue">${depts.length}</div><div class="stat-label">Departments</div></div>
+      <div class="stat-card stat-cyan"><div class="stat-icon">📅</div><div class="stat-num c-cyan">${evs.length}</div><div class="stat-label">Total Events</div></div>
+      <div class="stat-card stat-green"><div class="stat-icon">⚡</div><div class="stat-num c-green">${tech}</div><div class="stat-label">Technical</div></div>
+      <div class="stat-card stat-yellow"><div class="stat-icon">🎭</div><div class="stat-num c-yellow">${nonTech}</div><div class="stat-label">Non-Technical</div></div>
+      <div class="stat-card stat-green"><div class="stat-icon">🛠️</div><div class="stat-num c-green">${workshop}</div><div class="stat-label">Workshops</div></div>
+      <div class="stat-card stat-purple"><div class="stat-icon">👥</div><div class="stat-num c-blue">${parts.length}</div><div class="stat-label">Total Registrations</div></div>`;
+
+    document.getElementById('dash-events-wrap').innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">📭</span>No events yet.</div>`
+      : eventsTable(evs.slice(-8).reverse(), true);
+    if(evs.length) bindEventTableViewButtons(document.getElementById('dash-events-wrap'), evs.slice(-8).reverse());
+  } catch(e){ document.getElementById('dash-events-wrap').innerHTML = errMsg(e); }
+}
+
+async function renderDepts(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Departments</h2><p>All registered departments</p></div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-green">➕</span>Add New Department</div>
+      <div class="form-row">
+        <div class="fg"><label class="req">Department Name</label><input id="d-name" required placeholder="e.g. CSE"/></div>
+        <div class="fg"><label class="req">Head Name</label><input id="d-head" required placeholder="e.g. Dr. Ramesh"/></div>
+        <div class="fg"><label class="req">Head Phone</label><input id="d-phone" required placeholder="9876543210"/></div>
+        <div class="fg"><label class="req">Head Email</label><input id="d-email" required placeholder="hod@college.edu"/></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="addDept()">➕ Add Department</button></div>
+      <div class="res-area" id="d-res"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-cyan">🏛️</span>All Departments
+        <span style="margin-left:auto">
+          <button class="btn btn-danger btn-sm" onclick="openDeleteDept()">🗑 Delete Department</button>
+        </span>
+      </div>
+      <div id="depts-table-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+
+  await loadDeptsTable();
+}
+
+async function addDept(){
+  if(!requireFields([['d-name','Department Name'],['d-head','Head Name'],['d-phone','Head Phone'],['d-email','Head Email']], 'd-res')) return;
+  if(!requirePhone('d-phone','Head Phone','d-res')) return;
+  if(!requireEmail('d-email','Head Email','d-res')) return;
+  try {
+    const r = await apiReq('POST','/admin/departments',{
+      departmentName:fieldValue('d-name'),
+      headName:fieldValue('d-head'),
+      headPhone:fieldValue('d-phone'),
+      headEmail:fieldValue('d-email')
+    },adminH());
+    showRes('d-res',`✅ Department added!\nLogin Username: ${r.loginUsername}\n${r.message}`);
+    toast('Department added!','success');
+    await loadDeptsTable();
+    ['d-name','d-head','d-phone','d-email'].forEach(id=>document.getElementById(id).value='');
+  } catch(e){ showRes('d-res',fmtErr(e),true); }
+}
+
+async function loadDeptsTable(){
+  const wrap = document.getElementById('depts-table-wrap');
+  if(!wrap) return;
+  try {
+    const depts = await apiReq('GET','/admin/departments',null,adminH());
+    wrap.innerHTML = depts.length===0
+      ? `<div class="empty-state"><span class="empty-icon">🏛️</span>No departments yet.</div>`
+      : `<div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Name</th><th>Head</th><th>Phone</th><th>Email</th></tr></thead>
+          <tbody>${depts.map(d=>`<tr>
+            <td style="font-family:monospace">#${d.departmentId}</td>
+            <td><strong>${d.departmentName}</strong></td>
+            <td>${d.headName||'—'}</td>
+            <td>${d.headPhone||'—'}</td>
+            <td>${d.headEmail||'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>`;
+  } catch(e){ wrap.innerHTML = errMsg(e); }
+}
+
+async function renderAllEvents(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>All Events</h2><p>Every event across all departments</p></div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-blue">📅</span>Events
+        <span style="margin-left:auto">
+          <button class="btn btn-danger btn-sm" onclick="openDeleteEvent()">🗑 Delete Event</button>
+        </span>
+      </div>
+      <div id="all-ev-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+  try {
+    const evs = await apiReq('GET','/admin/events',null,adminH());
+    document.getElementById('all-ev-wrap').innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">📭</span>No events yet.</div>`
+      : eventsTable(evs, true);
+    if(evs.length) bindEventTableViewButtons(document.getElementById('all-ev-wrap'), evs);
+  } catch(e){ document.getElementById('all-ev-wrap').innerHTML = errMsg(e); }
+}
+
+function openDeleteEvent(){
+  openModal('Delete Event','admin-delete-event');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">⚠️ Admin can delete any event regardless of department.</div>
+    <div class="fg"><label>Event ID</label><input id="m-del-eid" type="number" placeholder="e.g. 101"/></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="adminDeleteEvent()">🗑 Delete Event</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="res-area" id="m-del-res"></div>`;
+}
+
+async function adminDeleteEvent(){
+  if(!requireNumberField('m-del-eid','Event ID',1,'m-del-res')) return;
+  const eid = fieldValue('m-del-eid');
+  try {
+    const r = await apiReq('DELETE',`/admin/events/${eid}`,null,adminH());
+    showRes('m-del-res','✅ '+r.message);
+    toast('Event deleted!','success');
+    setTimeout(()=>{ closeModal(); goTo('events'); },1500);
+  } catch(e){ showRes('m-del-res',fmtErr(e),true); }
+}
+
+function openDeleteDept(){
+  openModal('Delete Department','admin-delete-dept');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">⚠️ Department must have no events before deletion.</div>
+    <div class="fg"><label>Department ID</label><input id="m-del-did" type="number" placeholder="e.g. 1"/></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="adminDeleteDept()">🗑 Delete Department</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="res-area" id="m-ddept-res"></div>`;
+}
+
+async function adminDeleteDept(){
+  if(!requireNumberField('m-del-did','Department ID',1,'m-ddept-res')) return;
+  const did = fieldValue('m-del-did');
+  try {
+    const r = await apiReq('DELETE',`/admin/departments/${did}`,null,adminH());
+    showRes('m-ddept-res','✅ '+r.message);
+    toast('Department deleted!','success');
+    setTimeout(()=>{ closeModal(); goTo('depts'); },1500);
+  } catch(e){ showRes('m-ddept-res',fmtErr(e),true); }
+}
+
+function openAdminDeleteParticipant(){
+  openModal('Delete Participant','admin-delete-part');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">⚠️ This will permanently remove the participant and all their enrollments.</div>
+    <div class="fg"><label>Participant ID</label><input id="m-del-pid" type="number" placeholder="e.g. 5"/></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="adminDeleteParticipant()">🗑 Delete Participant</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="res-area" id="m-dpart-res"></div>`;
+}
+
+async function adminDeleteParticipant(){
+  if(!requireNumberField('m-del-pid','Participant ID',1,'m-dpart-res')) return;
+  const pid = fieldValue('m-del-pid');
+  try {
+    const r = await apiReq('DELETE',`/admin/participants/${pid}`,null,adminH());
+    showRes('m-dpart-res','✅ '+r.message);
+    toast('Participant deleted!','success');
+    setTimeout(()=>{ closeModal(); goTo('participants'); },1500);
+  } catch(e){ showRes('m-dpart-res',fmtErr(e),true); }
+}
+
+async function renderAllParts(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>All Participants</h2><p>Every registered participant</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title"><span class="ct-icon ct-blue">🔍</span>Filter by College</div>
+      <div class="form-row">
+        <div class="fg full"><label>College Name</label><input id="ap-college-filter" placeholder="Enter college name"/></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="loadAllParticipants()">Filter</button><button class="btn btn-success" onclick="downloadParticipantsExcel()">⬇ Download Excel Sheet</button></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-cyan">👥</span>Participants
+        <span style="margin-left:auto"><button class="btn btn-danger btn-sm" onclick="openAdminDeleteParticipant()">🗑 Delete Participant</button></span>
+      </div>
+      <div id="all-parts-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+  await loadAllParticipants();
+}
+
+async function loadAllParticipants(){
+  const filter = document.getElementById('ap-college-filter')?.value?.trim();
+  let url = '/admin/participants';
+  if(filter) url += `?collegeName=${encodeURIComponent(filter)}`;
+  try {
+    const parts = await apiReq('GET',url,null,adminH());
+    document.getElementById('all-parts-wrap').innerHTML = parts.length===0
+      ? `<div class="empty-state"><span class="empty-icon">👥</span>No participants found.</div>`
+      : participantsTable(parts, true);
+  } catch(e){ document.getElementById('all-parts-wrap').innerHTML = errMsg(e); }
+}
+
+
+function excelText(v){
+  return String(v ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function participantExcelRows(parts){
+  const rows = [[
+    'Participant ID','Name','Phone','Email','College','Address','Department',
+    'Accommodation','Payment Method','Paid Amount','Event Count','Events'
+  ]];
+  parts.forEach(p=>rows.push([
+    p.participantId,
+    p.name || '',
+    p.phone || '',
+    p.email || '',
+    p.collegeName || '',
+    p.address || '',
+    p.departmentName || '',
+    p.accommodation ? `${p.accommodation.days} day(s) / Rs.${p.accommodation.totalAmount}` : 'No',
+    latestPaymentMethod(p),
+    latestPaymentAmount(p),
+    p.events?.length || 0,
+    (p.events || []).map(e=>e.eventName).join('; ')
+  ]));
+  return rows;
+}
+
+function downloadExcelTable(filename, sheetTitle, rows){
+  const htmlRows = rows.map((row, rIndex)=>
+    '<tr>' + row.map(cell=>
+      rIndex === 0
+        ? `<th>${excelText(cell)}</th>`
+        : `<td style="mso-number-format:'\@';">${excelText(cell)}</td>`
+    ).join('') + '</tr>'
+  ).join('');
+
+  const excelHtml = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>${excelText(sheetTitle).slice(0,31)}</x:Name>
+<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>
+  table{border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:11pt;}
+  th{background:#000080;color:#ffffff;font-weight:bold;text-align:center;border:1px solid #b7b7b7;padding:6px 10px;}
+  td{border:1px solid #d9d9d9;padding:5px 10px;vertical-align:top;white-space:normal;}
+</style>
+</head>
+<body><table>${htmlRows}</table></body></html>`;
+
+  const blob = new Blob(['\ufeff', excelHtml], {type:'application/vnd.ms-excel;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  a.remove();
+}
+
+async function downloadParticipantsExcel(){
+  const filter = document.getElementById('ap-college-filter')?.value?.trim();
+  let url = '/admin/participants';
+  if(filter) url += `?collegeName=${encodeURIComponent(filter)}`;
+  try{
+    const parts = await apiReq('GET',url,null,adminH());
+    downloadExcelTable('symposium_participants.xls', 'Participants', participantExcelRows(parts));
+    toast('Excel sheet downloaded with proper columns.','success');
+  }catch(e){ toast(fmtErr(e),'error'); }
+}
+
+/* ════════════════════════════════
+   DEPARTMENT SECTIONS
+════════════════════════════════ */
+async function renderDeptDash(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Dashboard</h2><p>Your department overview</p></div>
+    <div class="stats-row" id="dept-stats-row">
+      <div class="stat-card"><div class="stat-num">…</div><div class="stat-label">Loading</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-blue">📅</span>My Events</div>
+      <div id="dept-dash-ev-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+  try {
+    const evs = await apiReq('GET',`/department/${S.deptId}/events`,null,deptH());
+    const tech = evs.filter(e=>e.category==='TECHNICAL').length;
+    const workshop = evs.filter(e=>e.category==='WORKSHOP').length;
+    const nonTech = evs.length - tech - workshop;
+    const enrolled = evs.reduce((a,e)=>a+e.enrolledCount,0);
+    document.getElementById('dept-stats-row').innerHTML = `
+      <div class="stat-card stat-blue"><div class="stat-icon">📅</div><div class="stat-num c-blue">${evs.length}</div><div class="stat-label">My Events</div></div>
+      <div class="stat-card stat-green"><div class="stat-icon">👥</div><div class="stat-num c-green">${enrolled}</div><div class="stat-label">Total Enrolled</div></div>
+      <div class="stat-card stat-cyan"><div class="stat-icon">⚡</div><div class="stat-num c-cyan">${tech}</div><div class="stat-label">Technical</div></div>
+      <div class="stat-card stat-yellow"><div class="stat-icon">🎭</div><div class="stat-num c-yellow">${nonTech}</div><div class="stat-label">Non-Technical</div></div>
+      <div class="stat-card stat-green"><div class="stat-icon">🛠️</div><div class="stat-num c-green">${workshop}</div><div class="stat-label">Workshops</div></div>`;
+    document.getElementById('dept-dash-ev-wrap').innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">📭</span>No events yet. <a href="#" onclick="goTo('dept-add')" style="color:var(--primary)">Add one →</a></div>`
+      : eventsTable(evs, false);
+    if(evs.length) bindEventTableViewButtons(document.getElementById('dept-dash-ev-wrap'), evs);
+  } catch(e){ document.getElementById('dept-dash-ev-wrap').innerHTML = errMsg(e); }
+}
+
+async function renderDeptEvents(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>My Events</h2><p>Events under ${S.deptName||'your department'}</p></div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-blue">📅</span>Events
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <select id="cat-filter" onchange="filterDeptEvents()" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;outline:none;">
+            <option value="">All Categories</option>
+            <option value="TECHNICAL">Technical</option>
+            <option value="NON-TECHNICAL">Non-Technical</option><option value="WORKSHOP">Workshop</option>
+          </select>
+        </span>
+      </div>
+      <div id="dept-ev-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+  await loadDeptEventsTable();
+}
+
+async function loadDeptEventsTable(){
+  const cat = document.getElementById('cat-filter')?.value || '';
+  const url = `/department/${S.deptId}/events`+(cat?`?category=${cat}`:'');
+  const wrap = document.getElementById('dept-ev-wrap');
+  try {
+    const evs = await apiReq('GET',url,null,deptH());
+    wrap.innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">📭</span>No events found.</div>`
+      : eventsTable(evs, false, true);
+    if(evs.length) bindEventTableViewButtons(wrap, evs);
+  } catch(e){ wrap.innerHTML = errMsg(e); }
+}
+
+function filterDeptEvents(){ loadDeptEventsTable(); }
+
+function renderDeptAdd(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Create Event</h2><p>Poster-based event creation with improved event poster display.</p></div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-green">➕</span>Event Details</div>
+      <div class="form-row">
+        <div class="fg"><label class="req">Event Name</label><input id="ev-name" required placeholder="Event name"/></div>
+        <div class="fg"><label class="req">Category</label><select id="ev-cat" required><option value="TECHNICAL">Technical</option><option value="NON-TECHNICAL">Non-Technical</option><option value="WORKSHOP">Workshop</option></select></div>
+        <div class="fg"><label class="req">Participation</label><select id="ev-mode" required onchange="toggleTeamFields()"><option value="INDIVIDUAL">Individual</option><option value="TEAM">Team</option></select></div>
+        <div class="fg"><label class="req">Max Participants</label><input id="ev-max" required min="1" type="number" placeholder="e.g. 100"/></div>
+        <div class="fg"><label class="req">Start Time</label><input id="ev-start" required type="time"/></div>
+        <div class="fg"><label class="req">End Time</label><input id="ev-end" required type="time"/></div>
+      </div>
+      <div class="form-row" id="team-size-wrap" style="display:none">
+        <div class="fg"><label class="req">Minimum Team Size</label><input id="ev-team-min" required min="1" type="number" placeholder="2"/></div>
+        <div class="fg"><label class="req">Maximum Team Size</label><input id="ev-team-max" required min="1" type="number" placeholder="3"/></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="req">In-charge Name</label><input id="ev-inc-name" required placeholder="Faculty / student coordinator"/></div>
+        <div class="fg"><label class="req">In-charge Phone</label><input id="ev-inc-phone" required placeholder="Phone"/></div>
+        <div class="fg"><label class="req">In-charge Email</label><input id="ev-inc-email" required placeholder="Email"/></div>
+        <div class="fg"><label class="req">Contact 1 Name</label><input id="ev-c1-name" required placeholder="Contact person"/></div>
+        <div class="fg"><label class="req">Contact 1 Phone</label><input id="ev-c1-phone" required placeholder="Phone"/></div>
+        <div class="fg"><label class="req">Contact 2 Name</label><input id="ev-c2-name" required placeholder="Contact person"/></div>
+        <div class="fg"><label class="req">Contact 2 Phone</label><input id="ev-c2-phone" required placeholder="Phone"/></div>
+      </div>
+      <div class="fg"><label class="req">Description</label><textarea id="ev-desc" required rows="4" placeholder="Explain the event clearly"></textarea></div>
+      <div class="fg"><label class="req">Rules</label><textarea id="ev-rules" required rows="4" placeholder="Rules, rounds, judging criteria"></textarea></div>
+      <div class="fg"><label class="req">Poster Image</label><input id="ev-poster" required type="file" accept="image/*" onchange="handlePosterUpload(event)"/><input id="ev-poster-data" type="hidden"/><div class="info-box">Upload a designed poster. It will be shown fully in a wide horizontal preview, not cropped halfway.</div></div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="addEvent()">✅ Create Event</button></div>
+      <div class="res-area" id="ev-res"></div>
+    </div>`;
+}
+
+function toggleTeamFields(){
+  const isTeam = document.getElementById('ev-mode')?.value === 'TEAM';
+  document.getElementById('team-size-wrap').style.display = isTeam ? 'grid' : 'none';
+}
+
+function handlePosterUpload(event){
+  const file = event.target.files?.[0];
+  const hidden = document.getElementById('ev-poster-data');
+  if(hidden) hidden.value = '';
+  markInvalid('ev-poster', false);
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    if(hidden) hidden.value = reader.result || '';
+    markInvalid('ev-poster', false);
+    const res = document.getElementById('ev-res');
+    if(res && res.classList.contains('err') && res.textContent.includes('Poster Image')){
+      res.style.display = 'none';
+    }
+  };
+  reader.onerror = () => showRes('ev-res','Could not read poster image. Please choose another image.',true);
+  reader.readAsDataURL(file);
+}
+
+function readSelectedPosterIfNeeded(){
+  const hidden = document.getElementById('ev-poster-data');
+  const fileInput = document.getElementById('ev-poster');
+  if(hidden?.value) return Promise.resolve(hidden.value);
+  const file = fileInput?.files?.[0];
+  if(!file) return Promise.resolve('');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = reader.result || '';
+      if(hidden) hidden.value = data;
+      resolve(data);
+    };
+    reader.onerror = () => reject(new Error('Could not read poster image. Please choose another image.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addEvent(){
+  const basicFields = [
+    ['ev-name','Event Name'], ['ev-cat','Category'], ['ev-mode','Participation'], ['ev-max','Max Participants'],
+    ['ev-start','Start Time'], ['ev-end','End Time'], ['ev-inc-name','In-charge Name'], ['ev-inc-phone','In-charge Phone'],
+    ['ev-inc-email','In-charge Email'], ['ev-c1-name','Contact 1 Name'], ['ev-c1-phone','Contact 1 Phone'],
+    ['ev-c2-name','Contact 2 Name'], ['ev-c2-phone','Contact 2 Phone'], ['ev-desc','Description'], ['ev-rules','Rules']
+  ];
+  if(!requireFields(basicFields, 'ev-res')) return;
+  try { await readSelectedPosterIfNeeded(); }
+  catch(err){ showRes('ev-res', err.message, true); toast(err.message, 'error'); return; }
+  if(!fieldValue('ev-poster-data')){
+    markInvalid('ev-poster', true);
+    showRes('ev-res','Poster Image is mandatory. Please upload it.',true);
+    toast('Poster Image is mandatory. Please upload it.','error');
+    document.getElementById('ev-poster')?.focus();
+    return;
+  }
+  if(!requireNumberField('ev-max','Max Participants',1,'ev-res')) return;
+  if(!requirePhone('ev-inc-phone','In-charge Phone','ev-res')) return;
+  if(!requireEmail('ev-inc-email','In-charge Email','ev-res')) return;
+  if(!requirePhone('ev-c1-phone','Contact 1 Phone','ev-res')) return;
+  if(!requirePhone('ev-c2-phone','Contact 2 Phone','ev-res')) return;
+  if(fieldValue('ev-start') >= fieldValue('ev-end')){ showRes('ev-res','End Time must be after Start Time.',true); toast('End Time must be after Start Time.','error'); return; }
+  if(fieldValue('ev-mode')==='TEAM'){
+    if(!requireFields([['ev-team-min','Minimum Team Size'],['ev-team-max','Maximum Team Size']], 'ev-res')) return;
+    if(!requireNumberField('ev-team-min','Minimum Team Size',2,'ev-res')) return;
+    if(!requireNumberField('ev-team-max','Maximum Team Size',2,'ev-res')) return;
+    if(Number(fieldValue('ev-team-min')) > Number(fieldValue('ev-team-max'))){ showRes('ev-res','Maximum Team Size must be greater than or equal to Minimum Team Size.',true); toast('Check team size range.','error'); return; }
+  }
+  try {
+    const payload = {
+      eventName:fieldValue('ev-name'),
+      venue:'',
+      startTime:fieldValue('ev-start'),
+      endTime:fieldValue('ev-end'),
+      maxParticipants:parseInt(fieldValue('ev-max')),
+      category:fieldValue('ev-cat'),
+      participationType:fieldValue('ev-mode'),
+      teamMinSize:fieldValue('ev-mode')==='TEAM' ? parseInt(document.getElementById('ev-team-min').value||0) : null,
+      teamMaxSize:fieldValue('ev-mode')==='TEAM' ? parseInt(document.getElementById('ev-team-max').value||0) : null,
+      posterImage:fieldValue('ev-poster-data'),
+      description:fieldValue('ev-desc'),
+      rules:fieldValue('ev-rules'),
+      inchargeName:fieldValue('ev-inc-name'),
+      inchargePhone:fieldValue('ev-inc-phone'),
+      inchargeEmail:fieldValue('ev-inc-email'),
+      contact1Name:fieldValue('ev-c1-name'),
+      contact1Phone:fieldValue('ev-c1-phone'),
+      contact2Name:fieldValue('ev-c2-name'),
+      contact2Phone:fieldValue('ev-c2-phone')
+    };
+    const r = await apiReq('POST',`/department/${S.deptId}/events`,payload,deptH());
+    showRes('ev-res',`✅ Event added! ID: #${r.eventId}`);
+    toast('Event added!','success');
+  } catch(e){ showRes('ev-res',fmtErr(e),true); }
+}
+
+async function renderDeptParts(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>My Participants</h2><p>Participants enrolled in your department events</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title"><span class="ct-icon ct-blue">🔍</span>Filter by College</div>
+      <div class="form-row"><div class="fg full"><label>College Name</label><input id="dp-college-filter" placeholder="Enter college name"/></div></div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="loadDeptParticipants()">Filter</button><button class="btn btn-success" onclick="downloadDeptParticipantsExcel()">⬇ Download Excel Sheet</button></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="ct-icon ct-cyan">👥</span>Participants</div>
+      <div id="dept-parts-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>
+    </div>`;
+  await loadDeptParticipants();
+}
+
+async function loadDeptParticipants(){
+  const filter = document.getElementById('dp-college-filter')?.value?.trim();
+  let url = `/department/${S.deptId}/participants`;
+  if(filter) url += `?collegeName=${encodeURIComponent(filter)}`;
+  try {
+    const parts = await apiReq('GET',url,null,deptH());
+    document.getElementById('dept-parts-wrap').innerHTML = parts.length===0
+      ? `<div class="empty-state"><span class="empty-icon">👥</span>No participants found.</div>`
+      : participantsTable(parts);
+  } catch(e){ document.getElementById('dept-parts-wrap').innerHTML = errMsg(e); }
+}
+
+async function downloadDeptParticipantsExcel(){
+  const filter = document.getElementById('dp-college-filter')?.value?.trim();
+  let url = `/department/${S.deptId}/participants`;
+  if(filter) url += `?collegeName=${encodeURIComponent(filter)}`;
+  try{
+    const parts = await apiReq('GET',url,null,deptH());
+    const deptName = (S.deptName || 'department').replace(/[^a-z0-9_-]+/gi, '_');
+    downloadExcelTable(`${deptName}_participants.xls`, 'Dept Participants', participantExcelRows(parts));
+    toast('Department participant Excel sheet downloaded with proper columns.','success');
+  }catch(e){ toast(fmtErr(e),'error'); }
+}
+
+function openDeptDeleteEvent(eventId){
+  openModal('Delete Event','dept-delete-event');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">⚠️ You can only delete events with 0 enrollments.</div>
+    <p style="margin-bottom:16px;color:var(--muted);font-size:0.88rem;">Deleting Event ID: <strong>#${eventId}</strong></p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="deptDeleteEvent(${eventId})">🗑 Confirm Delete</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="res-area" id="m-ddel-res"></div>`;
+}
+
+async function deptDeleteEvent(eid){
+  try {
+    const r = await apiReq('DELETE',`/department/${S.deptId}/events/${eid}`,null,deptH());
+    showRes('m-ddel-res','✅ '+r.message);
+    toast('Event deleted!','success');
+    setTimeout(()=>{ closeModal(); goTo('dept-events'); },1500);
+  } catch(e){ showRes('m-ddel-res',fmtErr(e),true); }
+}
+
+function openDeptDeleteParticipant(){
+  openModal('Remove Participant','dept-delete-part');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">⚠️ This will permanently remove the participant and all their enrollments.</div>
+    <div class="fg"><label>Participant ID</label><input id="m-dpt-pid" type="number" placeholder="e.g. 5"/></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="deptDeleteParticipant()">🗑 Remove Participant</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="res-area" id="m-dptdel-res"></div>`;
+}
+
+async function deptDeleteParticipant(){
+  if(!requireNumberField('m-dpt-pid','Participant ID',1,'m-dpart-res')) return;
+  const pid = fieldValue('m-dpt-pid');
+  try {
+    const r = await apiReq('DELETE',`/department/${S.deptId}/participants/${pid}`,null,deptH());
+    showRes('m-dptdel-res','✅ '+r.message);
+    toast('Participant removed!','success');
+    setTimeout(()=>{ closeModal(); goTo('dept-parts'); },1500);
+  } catch(e){ showRes('m-dptdel-res',fmtErr(e),true); }
+}
+
+/* ════════════════════════════════
+   PARTICIPANT SECTIONS
+════════════════════════════════ */
+async function renderPartProfile(mc){
+  mc.innerHTML = `<div class="page-header"><h2>My Profile</h2><p>Your participant details</p></div>
+    <div id="profile-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div>`;
+  try {
+    const p = await apiReq('GET',`/participants/${S.participantId}`,null,{});
+    const accStr = p.accommodation
+      ? `${p.accommodation.days} day(s) — Rs.${p.accommodation.totalAmount}`
+      : 'Not requested';
+    const evList = p.events?.length
+      ? p.events.map(e=>`<span class="badge badge-enrolled" style="margin:2px">${e.eventName}</span>`).join(' ')
+      : '<span style="color:var(--muted)">None yet</span>';
+    const notesHtml = notificationCardsHtml(p);
+    const paymentsHtml = paymentHistoryHtml(p);
+
+    document.getElementById('profile-wrap').innerHTML = `
+      <div class="profile-card">
+        <div class="profile-name">${p.name}</div>
+        <div class="profile-meta">📧 ${p.email||'—'} &nbsp;|&nbsp; 📞 ${p.phone||'—'}</div>
+        <div class="profile-id">ID: #${p.participantId}</div>
+        <div class="profile-details">
+          <div class="profile-det-item"><div class="profile-det-label">College</div><div class="profile-det-val">${p.collegeName||'—'}</div></div>
+          <div class="profile-det-item"><div class="profile-det-label">Address</div><div class="profile-det-val">${p.address||'—'}</div></div>
+          <div class="profile-det-item"><div class="profile-det-label">Department</div><div class="profile-det-val">${p.departmentName||'—'}</div></div>
+          <div class="profile-det-item"><div class="profile-det-label">Accommodation</div><div class="profile-det-val">${accStr}</div></div>
+          <div class="profile-det-item"><div class="profile-det-label">Attendance Confirmed</div><div class="profile-det-val">${p.attendanceConfirmed?'Yes':'No'}</div></div>
+          <div class="profile-det-item"><div class="profile-det-label">Events Enrolled</div><div class="profile-det-val">${p.events?.length||0}</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="ct-icon ct-green">✅</span>Enrolled Events</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px">${evList}</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="ct-icon ct-yellow">🔔</span>Notifications</div>
+        ${notesHtml}
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="ct-icon ct-cyan">💳</span>Payment History</div>
+        ${paymentsHtml}
+      </div>`;
+  } catch(e){
+    document.getElementById('profile-wrap').innerHTML = errMsg(e);
+  }
+}
+
+async function renderPartEvents(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Explore Events</h2><p>Filter events, click a poster, then enroll from the event details.</p></div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title"><span class="ct-icon ct-blue">🔍</span>Filter Events</div>
+      <div class="form-row">
+        <div class="fg"><label>Department Name</label><input id="pe-deptname" placeholder="Search department by name" list="dept-list"/></div>
+        <div class="fg"><label>Category</label><select id="pe-cat"><option value="ALL">All Categories</option><option value="TECHNICAL">Technical</option><option value="NON-TECHNICAL">Non-Technical</option><option value="WORKSHOP">Workshop</option></select></div>
+        <div class="fg"><label>Participation</label><select id="pe-mode"><option value="ALL">All</option><option value="INDIVIDUAL">Individual</option><option value="TEAM">Team</option></select></div>
+      </div>
+      <datalist id="dept-list"></datalist>
+      <div class="btn-row"><button class="btn btn-primary" onclick="searchEvents()">🔍 Show Filtered Events</button></div>
+    </div>
+    <div id="pe-results"><div class="empty-state"><span class="empty-icon">⏳</span>Loading events…</div></div>`;
+  await loadDepartmentNames();
+  await searchEvents();
+}
+
+async function loadDepartmentNames(){
+  try{
+    const ds = await apiReq('GET','/participants/departments',null,{});
+    const dl = document.getElementById('dept-list');
+    if(dl) dl.innerHTML = ds.map(d=>`<option value="${d.departmentName}"></option>`).join('');
+  }catch(e){}
+}
+
+function parseTeamMembers(){
+  const raw = document.getElementById('pe-team-members')?.value?.trim();
+  if(!raw) return [];
+  return raw.split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts = line.split(',');
+    return {participantId:(parts[0]||'').trim(), name:(parts.slice(1).join(',')||'').trim()};
+  }).filter(x=>x.participantId || x.name);
+}
+
+async function enrollByIdBtn(){
+  const eid = parseInt(document.getElementById('pe-enroll-id').value);
+  if(!eid){ showRes('pe-enroll-res','Please enter an Event ID.',true); return; }
+  try {
+    const r = await apiReq('POST',`/participants/${S.participantId}/enroll/${eid}`,{
+      attendanceConfirmed: document.getElementById('pe-confirm').checked,
+      teamName: document.getElementById('pe-team-name').value.trim(),
+      teamMembers: parseTeamMembers()
+    },{});
+    const ename = r.enrolledEvents?.find(e=>e.eventId===eid)?.eventName || ('Event #'+eid);
+    showRes('pe-enroll-res','✅ Enrolled in: '+ename);
+    toast('Enrolled successfully!','success');
+    openModal('Enrollment Confirmed','enroll-confirm');
+    document.getElementById('edit-modal-body').innerHTML = `
+      <div class="success-box">
+        <strong>🎉 You're enrolled!</strong><br/><br/>
+        <span style="color:var(--muted);font-size:0.85rem">
+          In-charge: ${r.inchargeName||'—'}<br/>
+          In-charge Phone: ${r.inchargePhone||'—'}<br/>
+          In-charge Email: ${r.inchargeEmail||'—'}<br/>
+          Department Contact: ${r.organizerPhone||'—'} / ${r.organizerEmail||'—'}<br/>
+          ${r.notification?`Latest Update: ${r.notification}`:''}
+        </span>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="closeModal();goTo('part-enrolled')">View My Enrollments</button>
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+      </div>`;
+  } catch(e){ showRes('pe-enroll-res',fmtErr(e),true); }
+}
+
+function posterHtml(evt){
+  return evt.posterImage
+    ? `<div class="poster-frame"><img src="${evt.posterImage}" alt="${evt.eventName} poster" onerror="this.parentElement.innerHTML=posterFallbackHtml('${evt.eventName}','${evt.category||''}')"/></div>`
+    : posterFallbackHtml(evt.eventName, evt.category||'SYMPOSIUM');
+}
+function posterFallbackHtml(name, category){
+  return `<div class="poster-frame"><div class="poster-fallback"><div class="small">${category}</div><div class="big">${name||'EVENT'}</div><div class="small">National Engineering College</div></div></div>`;
+}
+
+function openEventDetails(evt){
+  selectedEventForEnroll = evt;
+  openModal(evt.eventName,'event-view');
+  const canEnroll = S.role === 'participant';
+  const teamBox = canEnroll && evt.participationType==='TEAM' ? `
+    <div class="fg"><label class="req">Team Name</label><input id="modal-team-name" required placeholder="Enter team name"/></div>
+    <div class="fg"><label class="req">Teammate Participant IDs</label><textarea id="modal-team-ids" required rows="3" placeholder="1023
+1024"></textarea><small style="color:var(--muted)">Enter only registered Participant IDs. Valid teammates will automatically see this event in their own enrollment page.</small></div>` : '';
+  const enrollBox = canEnroll ? `
+        <div class="enroll-panel" id="enroll-here">
+          <div class="card-title"><span class="ct-icon ct-green">✅</span>Enroll in this Event</div>
+          <div class="fg"><label><input type="checkbox" id="modal-confirm" checked/> I confirm I will attend this event</label></div>
+          ${teamBox}
+          <div class="info-box">Your symposium registration payment is already completed. No extra event payment is needed.</div>
+          <div class="btn-row"><button class="btn btn-success" onclick="enrollSelectedEvent()">Enroll Now</button></div>
+          <div class="res-area" id="modal-enroll-res"></div>
+        </div>` : '';
+
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="event-card">
+      <div class="event-detail-layout">
+        <div class="event-detail-poster">${posterHtml(evt)}</div>
+        <div class="event-card-body">
+          <h3 style="font-size:1.65rem;margin-bottom:10px">${evt.eventName}</h3>
+          <div class="event-meta"><span class="event-chip">${evt.category||'—'}</span><span class="event-chip">${evt.participationType||'INDIVIDUAL'}</span><span class="event-chip">${evt.department?.departmentName||'—'}</span></div>
+          ${evt.participationType==='TEAM'?`<p><strong>Team Size:</strong> ${evt.teamMinSize||'-'} to ${evt.teamMaxSize||'-'} members</p>`:''}
+          <p><strong>Time:</strong> ${evt.startTime||''} – ${evt.endTime||''}</p>
+          ${enrollBox}
+          ${!canEnroll?`<div class="info-box">Viewing mode only. Enrollment is available only in the Participant login.</div>`:''}
+        </div>
+      </div>
+
+      <div class="event-detail-section">
+        <h4>Description</h4>
+        <div class="event-detail-text">${evt.description||'—'}</div>
+      </div>
+      <div class="event-detail-section">
+        <h4>Rules</h4>
+        <div class="event-detail-text">${(evt.rules||'—').replace(/\n/g,'<br/>')}</div>
+      </div>
+      ${evt.lastScheduleUpdateNote?`<div class="info-box">🔔 ${evt.lastScheduleUpdateNote}</div>`:''}
+      <div class="event-detail-section contact-section">
+        <h4>Contact Details</h4>
+        <p><strong>In-charge:</strong> ${evt.inchargeName||'—'} ${evt.inchargePhone?('| '+evt.inchargePhone):''} ${evt.inchargeEmail?('| '+evt.inchargeEmail):''}</p>
+        <p><strong>Contact 1:</strong> ${evt.contact1Name||'—'} ${evt.contact1Phone?('| '+evt.contact1Phone):''}</p>
+        <p><strong>Contact 2:</strong> ${evt.contact2Name||'—'} ${evt.contact2Phone?('| '+evt.contact2Phone):''}</p>
+      </div>
+    </div>`;
+}
+
+function idsToTeamMembers(raw){
+  if(!raw || !raw.trim()) return [];
+  return raw.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).map(id=>({participantId:id,name:''}));
+}
+async function enrollSelectedEvent(){
+  const evt = selectedEventForEnroll;
+  if(!evt){ return; }
+  if(!document.getElementById('modal-confirm')?.checked){ showRes('modal-enroll-res','Attendance confirmation is mandatory.',true); toast('Please confirm attendance.','error'); return; }
+  const body = { attendanceConfirmed: true };
+  if(evt.participationType==='TEAM'){
+    if(!requireFields([['modal-team-name','Team Name'],['modal-team-ids','Teammate Participant IDs']], 'modal-enroll-res')) return;
+    body.teamName = fieldValue('modal-team-name');
+    body.teamMembers = idsToTeamMembers(fieldValue('modal-team-ids'));
+    const min = Number(evt.teamMinSize || 1);
+    const max = Number(evt.teamMaxSize || 999);
+    const total = 1 + body.teamMembers.length;
+    if(total < min || total > max){ showRes('modal-enroll-res',`Team size must be between ${min} and ${max} including you.`,true); toast('Invalid team size.','error'); return; }
+  }
+  try{
+    const r = await apiReq('POST',`/participants/${S.participantId}/enroll/${evt.eventId}`,body,{});
+    showRes('modal-enroll-res','✅ '+r.message+' Teammates are also updated when valid IDs are given.');
+    toast('Enrolled successfully!','success');
+    setTimeout(()=>{ closeModal(); goTo('part-enrolled'); },1200);
+  }catch(e){ showRes('modal-enroll-res',fmtErr(e),true); }
+}
+
+async function searchEvents(){
+  const deptName = document.getElementById('pe-deptname')?.value?.trim();
+  const cat = document.getElementById('pe-cat')?.value || 'ALL';
+  const participationType = document.getElementById('pe-mode')?.value || 'ALL';
+  try {
+    let url = `/participants/events/available?category=${cat}&participationType=${participationType}`;
+    if(deptName) url += `&deptName=${encodeURIComponent(deptName)}`;
+    const evs = await apiReq('GET', url, null, {});
+    const resultsEl = document.getElementById('pe-results');
+    if(!resultsEl) return;
+    resultsEl.innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">📭</span>No events found for this filter.</div>`
+      : `<div class="event-grid">${evs.map((e,i)=>`
+        <div class="event-card">
+          ${posterHtml(e)}
+          <div class="event-card-body">
+            <h3>${e.eventName}</h3>
+            <div class="event-meta"><span class="event-chip">${e.category}</span><span class="event-chip">${e.participationType||'INDIVIDUAL'}</span><span class="event-chip">${e.department?.departmentName||'—'}</span></div>
+            <p><strong>Time:</strong> ${e.startTime} – ${e.endTime}</p>
+            ${e.participationType==='TEAM'?`<p><strong>Team:</strong> ${e.teamMinSize||'-'} to ${e.teamMaxSize||'-'} members</p>`:''}
+            <p>${(e.description||'Click view details to read rules and enroll.').slice(0,120)}${(e.description||'').length>120?'...':''}</p>
+            <div class="btn-row"><button class="btn btn-primary" data-view-index="${i}">View Details & Enroll</button></div>
+          </div>
+        </div>`).join('')}</div>`;
+    resultsEl.querySelectorAll('[data-view-index]').forEach(btn=>btn.onclick = ()=>openEventDetails(evs[parseInt(btn.getAttribute('data-view-index'))]));
+  } catch(e){ const resultsEl = document.getElementById('pe-results'); if(resultsEl) resultsEl.innerHTML = errMsg(e); }
+}
+
+async function renderPartEnrolled(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>My Enrollments</h2><p>Events registered by you or added through a team registration</p></div>
+    <div class="card" style="margin-bottom:18px"><div class="card-title"><span class="ct-icon ct-yellow">🔔</span>Notifications / Time Conflicts</div><div id="enroll-notes-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div></div>
+    <div class="card"><div class="card-title"><span class="ct-icon ct-green">✅</span>Enrolled Events</div><div id="enrolled-wrap"><div class="empty-state"><span class="empty-icon">⏳</span>Loading…</div></div></div>`;
+  try {
+    const p = await apiReq('GET',`/participants/${S.participantId}`,null,{});
+    const evs = p.events || [];
+    document.getElementById('enroll-notes-wrap').innerHTML = notificationCardsHtml(p);
+    document.getElementById('enrolled-wrap').innerHTML = evs.length===0
+      ? `<div class="empty-state"><span class="empty-icon">🎟️</span>You haven't enrolled in any events yet.<br/><a href="#" onclick="goTo('part-events')" style="color:var(--primary)">Explore events →</a></div>`
+      : `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Event Name</th><th>Category</th><th>Mode</th><th>Time</th><th>Update</th><th>Action</th></tr></thead>
+          <tbody>${evs.map(e=>`<tr><td style="font-family:monospace">#${e.eventId}</td><td><strong>${e.eventName}</strong></td><td><span class="badge badge-${e.category==='TECHNICAL'?'tech':'nontech'}">${e.category}</span></td><td>${e.participationType||'INDIVIDUAL'}</td><td style="font-family:monospace;font-size:0.82rem">${e.startTime||''} – ${e.endTime||''}</td><td>${e.lastScheduleUpdateNote||'—'}</td><td><button class="btn btn-danger btn-sm" onclick="unenrollEvent(${e.eventId})">Unenroll</button></td></tr>`).join('')}</tbody></table></div>
+        <p style="margin-top:12px;color:var(--muted);font-size:0.82rem">${evs.length} event(s) enrolled</p>`;
+  } catch(e){ document.getElementById('enrolled-wrap').innerHTML = errMsg(e); }
+}
+
+async function unenrollEvent(eventId){
+  if(!confirm('Unenroll from this event?')) return;
+  try{
+    const r = await apiReq('DELETE',`/participants/${S.participantId}/enroll/${eventId}`,null,{});
+    toast(r.message || 'Unenrolled','success');
+    goTo('part-enrolled');
+  }catch(e){ toast(fmtErr(e),'error'); }
+}
+
+async function confirmTeamMember(){
+  const ownerId = parseInt(document.getElementById('tc-owner').value);
+  const eventId = parseInt(document.getElementById('tc-event').value);
+  if(!ownerId || !eventId){ showRes('team-action-res','Enter owner participant ID and event ID.',true); return; }
+  try{
+    const r = await apiReq('POST',`/participants/${S.participantId}/confirm-team/${ownerId}/${eventId}`,null,{});
+    showRes('team-action-res','✅ '+r.message);
+    toast('Team membership confirmed!','success');
+  }catch(e){ showRes('team-action-res',fmtErr(e),true); }
+}
+
+async function addTeamMembersLaterBtn(){
+  const eventId = parseInt(document.getElementById('tc-event').value);
+  if(!eventId){ showRes('team-action-res','Enter Event ID.',true); return; }
+  try{
+    const r = await apiReq('PATCH',`/participants/${S.participantId}/team/${eventId}`,{teamMembers: parseTeamMembersFromText('late-team-members')},{});
+    showRes('team-action-res','✅ '+r.message+' Teammates saved.');
+    toast('Team members updated!','success');
+  }catch(e){ showRes('team-action-res',fmtErr(e),true); }
+}
+
+function parseTeamMembersFromText(id){
+  const raw = document.getElementById(id)?.value?.trim();
+  if(!raw) return [];
+  return raw.split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts = line.split(',');
+    return {participantId:(parts[0]||'').trim(), name:(parts.slice(1).join(',')||'').trim()};
+  }).filter(x=>x.participantId || x.name);
+}
+
+function renderPartEdit(mc){
+  mc.innerHTML = `
+    <div class="page-header"><h2>Edit Details</h2><p>Update your profile information</p></div>
+    <div class="info-box">💡 Choose what you want to edit below.</div>
+    <div class="edit-options">
+      <button class="edit-option-btn active" onclick="showEditPanel('phone',this)">📞 Phone Number</button>
+      <button class="edit-option-btn" onclick="showEditPanel('email',this)">📧 Email Address</button>
+      <button class="edit-option-btn" onclick="showEditPanel('accommodation',this)">🏨 Accommodation</button>
+    </div>
+    <div class="card" style="max-width:480px" id="edit-panel">
+      ${phoneEditForm()}
+    </div>`;
+}
+
+function showEditPanel(type, btn){
+  document.querySelectorAll('.edit-option-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const panel = document.getElementById('edit-panel');
+  if(type==='phone')         panel.innerHTML = phoneEditForm();
+  else if(type==='email')    panel.innerHTML = emailEditForm();
+  else                       panel.innerHTML = accEditForm();
+}
+
+function phoneEditForm(){ return `
+  <div class="card-title"><span class="ct-icon ct-blue">📞</span>Update Phone Number</div>
+  <div class="fg"><label class="req">New Phone Number</label><input id="upd-phone" required placeholder="Enter new phone number"/></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="updatePhone()">💾 Save Phone</button></div>
+  <div class="res-area" id="phone-res"></div>`; }
+
+function emailEditForm(){ return `
+  <div class="card-title"><span class="ct-icon ct-cyan">📧</span>Update Email Address</div>
+  <div class="fg"><label class="req">New Email Address</label><input id="upd-email" required type="email" placeholder="Enter new email address"/></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="updateEmail()">💾 Save Email</button></div>
+  <div class="res-area" id="email-res"></div>`; }
+
+function accEditForm(){ return `
+  <div class="card-title"><span class="ct-icon ct-yellow">🏨</span>Update Accommodation</div>
+  <div class="fg"><label>Do you need accommodation?</label>
+    <select id="upd-acc" onchange="toggleAccDays()">
+      <option value="no">No – Remove accommodation</option>
+      <option value="yes">Yes – Add / Update accommodation</option>
+    </select>
+  </div>
+  <div id="acc-days-wrap" style="display:none">
+    <div class="fg"><label class="req">Number of Days (Rs.350/day)</label><input id="upd-days" required type="number" min="1" placeholder="e.g. 2"/></div>
+  </div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="updateAcc()">💾 Save Accommodation</button></div>
+  <div class="res-area" id="acc-res"></div>`; }
+
+function toggleAccDays(){
+  document.getElementById('acc-days-wrap').style.display =
+    document.getElementById('upd-acc').value==='yes'?'block':'none';
+}
+
+async function updatePhone(){
+  if(!requirePhone('upd-phone','New Phone Number','phone-res')) return;
+  try {
+    const r = await apiReq('PATCH',`/participants/${S.participantId}/phone`,{phone:fieldValue('upd-phone')},{});
+    showRes('phone-res','✅ '+r.message); toast('Phone updated!','success');
+  } catch(e){ showRes('phone-res',fmtErr(e),true); }
+}
+
+async function updateEmail(){
+  if(!requireEmail('upd-email','New Email Address','email-res')) return;
+  try {
+    const r = await apiReq('PATCH',`/participants/${S.participantId}/email`,{email:fieldValue('upd-email')},{});
+    showRes('email-res','✅ '+r.message); toast('Email updated!','success');
+  } catch(e){ showRes('email-res',fmtErr(e),true); }
+}
+
+async function updateAcc(){
+  const wants = document.getElementById('upd-acc').value==='yes';
+  if(wants && !requireNumberField('upd-days','Number of Days',1,'acc-res')) return;
+  const days = wants ? parseInt(fieldValue('upd-days')) : 0;
+  try {
+    const r = await apiReq('PATCH',`/participants/${S.participantId}/accommodation`,{wantsAccommodation:wants,days},{});
+    const msg = r.message + (r.totalPrice ? ` (Total: ${r.totalPrice})` : '');
+    showRes('acc-res','✅ '+msg); toast('Accommodation updated!','success');
+  } catch(e){ showRes('acc-res',fmtErr(e),true); }
+}
+
+/* ════════════════════════════════
+   HELPERS
+════════════════════════════════ */
+function eventsTable(evs, showDept=false, showDelete=false){
+  const canEdit = S.role === 'admin' || S.role === 'dept';
+  return `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>ID</th><th>Event</th><th>Category</th><th>Mode</th>
+      ${showDept?'<th>Department</th>':''}
+      <th>Time</th><th>Enrolled</th><th>View</th>
+      ${canEdit?'<th>Edit</th>':''}
+      ${showDelete?'<th>Delete</th>':''}
+    </tr></thead>
+    <tbody>${evs.map((e,i)=>`<tr>
+      <td style="font-family:monospace">#${e.eventId}</td>
+      <td><strong>${e.eventName}</strong></td>
+      <td><span class="badge badge-${e.category==='TECHNICAL'?'tech':'nontech'}">${e.category}</span></td>
+      <td>${e.participationType||'INDIVIDUAL'}</td>
+      ${showDept?`<td>${e.department?.departmentName||'—'}</td>`:''}
+      <td style="font-family:monospace;font-size:0.82rem">${e.startTime} – ${e.endTime}</td>
+      <td>${e.enrolledCount} / ${e.maxParticipants}</td>
+      <td><button class="btn btn-outline btn-sm" data-view-index="${i}">👁</button></td>
+      ${canEdit?`<td><button class="btn btn-primary btn-sm" data-edit-index="${i}">✏️</button></td>`:''}
+      ${showDelete?`<td><button class="btn btn-danger btn-sm" onclick="openDeptDeleteEvent(${e.eventId})">🗑</button></td>`:''}
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function bindEventTableViewButtons(container, evs){
+  container.querySelectorAll('[data-view-index]').forEach(btn=>{
+    btn.onclick = ()=>openEventDetails(evs[parseInt(btn.getAttribute('data-view-index'))]);
+  });
+  container.querySelectorAll('[data-edit-index]').forEach(btn=>{
+    btn.onclick = ()=>openEditEvent(evs[parseInt(btn.getAttribute('data-edit-index'))]);
+  });
+}
+
+function editBlock(checkId, title, inner){
+  return `<div class="info-box" style="margin-bottom:12px">
+    <label style="font-weight:800"><input type="checkbox" id="${checkId}"/> ${title}</label>
+    <div style="margin-top:10px">${inner}</div>
+  </div>`;
+}
+
+function openEditEvent(evt){
+  selectedEditEvent = evt;
+  openModal('Edit Event #' + evt.eventId, 'event-edit');
+  document.getElementById('edit-modal-body').innerHTML = `
+    <div class="info-box">Select only the details you want to change. Enrolled students will automatically get a notification about the updated details.</div>
+    ${editBlock('ee-c-name','Event Name',`<div class="fg"><input id="ee-name" value="${evt.eventName||''}"/></div>`)}
+    ${editBlock('ee-c-cat','Category',`<div class="fg"><select id="ee-cat"><option value="TECHNICAL" ${evt.category==='TECHNICAL'?'selected':''}>Technical</option><option value="NON-TECHNICAL" ${evt.category==='NON-TECHNICAL'?'selected':''}>Non-Technical</option><option value="WORKSHOP" ${evt.category==='WORKSHOP'?'selected':''}>Workshop</option></select></div>`)}
+    ${editBlock('ee-c-time','Time',`<div class="form-row"><div class="fg"><label>Start Time</label><input id="ee-start" type="time" value="${evt.startTime||''}"/></div><div class="fg"><label>End Time</label><input id="ee-end" type="time" value="${evt.endTime||''}"/></div></div>`)}
+    ${editBlock('ee-c-max','Maximum Participants',`<div class="fg"><input id="ee-max" type="number" min="1" value="${evt.maxParticipants||1}"/></div>`)}
+    ${editBlock('ee-c-mode','Participation / Team Size',`<div class="form-row"><div class="fg"><label>Mode</label><select id="ee-mode"><option value="INDIVIDUAL" ${(evt.participationType||'INDIVIDUAL')==='INDIVIDUAL'?'selected':''}>Individual</option><option value="TEAM" ${evt.participationType==='TEAM'?'selected':''}>Team</option></select></div><div class="fg"><label>Min Team Size</label><input id="ee-team-min" type="number" min="1" value="${evt.teamMinSize||''}"/></div><div class="fg"><label>Max Team Size</label><input id="ee-team-max" type="number" min="1" value="${evt.teamMaxSize||''}"/></div></div>`)}
+    ${editBlock('ee-c-contact','Contact Details',`<div class="form-row"><div class="fg"><label>In-charge Name</label><input id="ee-inc-name" value="${evt.inchargeName||''}"/></div><div class="fg"><label>In-charge Phone</label><input id="ee-inc-phone" value="${evt.inchargePhone||''}"/></div><div class="fg"><label>In-charge Email</label><input id="ee-inc-email" value="${evt.inchargeEmail||''}"/></div><div class="fg"><label>Contact 1 Name</label><input id="ee-c1-name" value="${evt.contact1Name||''}"/></div><div class="fg"><label>Contact 1 Phone</label><input id="ee-c1-phone" value="${evt.contact1Phone||''}"/></div><div class="fg"><label>Contact 2 Name</label><input id="ee-c2-name" value="${evt.contact2Name||''}"/></div><div class="fg"><label>Contact 2 Phone</label><input id="ee-c2-phone" value="${evt.contact2Phone||''}"/></div></div>`)}
+    ${editBlock('ee-c-content','Description / Rules',`<div class="fg"><label>Description</label><textarea id="ee-desc" rows="3">${evt.description||''}</textarea></div><div class="fg"><label>Rules</label><textarea id="ee-rules" rows="3">${evt.rules||''}</textarea></div>`)}
+    ${editBlock('ee-c-poster','Poster Image',`<div class="fg"><input id="ee-poster" type="file" accept="image/*"/><input id="ee-poster-data" type="hidden"/></div>`)}
+    <div class="btn-row"><button class="btn btn-primary" onclick="submitEventEdit()">💾 Save Selected Changes</button><button class="btn btn-outline" onclick="closeModal()">Cancel</button></div>
+    <div class="res-area" id="ee-res"></div>`;
+}
+
+function isChecked(id){ return !!document.getElementById(id)?.checked; }
+
+async function submitEventEdit(){
+  const evt = selectedEditEvent;
+  if(!evt) return;
+  const payload = {};
+  if(isChecked('ee-c-name')){
+    if(!requireFields([['ee-name','Event Name']], 'ee-res')) return;
+    payload.eventName = fieldValue('ee-name');
+  }
+  if(isChecked('ee-c-cat')) payload.category = fieldValue('ee-cat');
+  if(isChecked('ee-c-time')){
+    if(!requireFields([['ee-start','Start Time'],['ee-end','End Time']], 'ee-res')) return;
+    if(fieldValue('ee-start') >= fieldValue('ee-end')){ showRes('ee-res','End Time must be after Start Time.',true); return; }
+    payload.startTime = fieldValue('ee-start');
+    payload.endTime = fieldValue('ee-end');
+  }
+  if(isChecked('ee-c-max')){
+    if(!requireNumberField('ee-max','Maximum Participants',1,'ee-res')) return;
+    payload.maxParticipants = Number(fieldValue('ee-max'));
+  }
+  if(isChecked('ee-c-mode')){
+    payload.participationType = fieldValue('ee-mode');
+    if(payload.participationType === 'TEAM'){
+      if(!requireNumberField('ee-team-min','Minimum Team Size',1,'ee-res')) return;
+      if(!requireNumberField('ee-team-max','Maximum Team Size',1,'ee-res')) return;
+      if(Number(fieldValue('ee-team-min')) > Number(fieldValue('ee-team-max'))){ showRes('ee-res','Maximum Team Size must be greater than or equal to Minimum Team Size.',true); return; }
+      payload.teamMinSize = Number(fieldValue('ee-team-min'));
+      payload.teamMaxSize = Number(fieldValue('ee-team-max'));
+    } else {
+      payload.teamMinSize = null;
+      payload.teamMaxSize = null;
+    }
+  }
+  if(isChecked('ee-c-contact')){
+    if(!requireFields([['ee-inc-name','In-charge Name'],['ee-inc-phone','In-charge Phone'],['ee-inc-email','In-charge Email'],['ee-c1-name','Contact 1 Name'],['ee-c1-phone','Contact 1 Phone'],['ee-c2-name','Contact 2 Name'],['ee-c2-phone','Contact 2 Phone']], 'ee-res')) return;
+    if(!requirePhone('ee-inc-phone','In-charge Phone','ee-res')) return;
+    if(!requireEmail('ee-inc-email','In-charge Email','ee-res')) return;
+    if(!requirePhone('ee-c1-phone','Contact 1 Phone','ee-res')) return;
+    if(!requirePhone('ee-c2-phone','Contact 2 Phone','ee-res')) return;
+    Object.assign(payload, {
+      inchargeName:fieldValue('ee-inc-name'), inchargePhone:fieldValue('ee-inc-phone'), inchargeEmail:fieldValue('ee-inc-email'),
+      contact1Name:fieldValue('ee-c1-name'), contact1Phone:fieldValue('ee-c1-phone'), contact2Name:fieldValue('ee-c2-name'), contact2Phone:fieldValue('ee-c2-phone')
+    });
+  }
+  if(isChecked('ee-c-content')){
+    if(!requireFields([['ee-desc','Description'],['ee-rules','Rules']], 'ee-res')) return;
+    payload.description = fieldValue('ee-desc');
+    payload.rules = fieldValue('ee-rules');
+  }
+  if(isChecked('ee-c-poster')){
+    try { payload.posterImage = await fileToDataUrl('ee-poster','ee-poster-data','ee-res'); }
+    catch(err){ showRes('ee-res',err.message,true); return; }
+    if(!payload.posterImage){ showRes('ee-res','Please choose a poster image.',true); return; }
+  }
+  if(Object.keys(payload).length === 0){ showRes('ee-res','Select at least one detail to edit.',true); return; }
+  try{
+    const path = S.role === 'admin' ? `/admin/events/${evt.eventId}` : `/department/${S.deptId}/events/${evt.eventId}`;
+    const headers = S.role === 'admin' ? adminH() : deptH();
+    await apiReq('PATCH', path, payload, headers);
+    showRes('ee-res','✅ Event updated. Enrolled participants were notified about the selected changes.');
+    toast('Event updated!','success');
+    setTimeout(()=>{ closeModal(); goTo(S.role==='admin'?'events':'dept-events'); },1200);
+  }catch(e){ showRes('ee-res',fmtErr(e),true); }
+}
+
+function participantsTable(parts, showPayment=false){
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>College</th><th>Address</th><th>Department</th><th>Accommodation</th>${showPayment?'<th>Payment Method</th><th>Paid Amount</th>':''}<th>Events</th></tr></thead>
+    <tbody>${parts.map(p=>`<tr>
+      <td style="font-family:monospace">#${p.participantId}</td>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.phone||'—'}</td>
+      <td>${p.email||'—'}</td>
+      <td>${p.collegeName||'—'}</td>
+      <td>${p.address||'—'}</td>
+      <td>${p.departmentName||'—'}</td>
+      <td>${p.accommodation?`${p.accommodation.days}d / Rs.${p.accommodation.totalAmount}`:'No'}</td>
+      ${showPayment?`<td><strong>${latestPaymentMethod(p)}</strong></td><td>${latestPaymentAmount(p)}</td>`:''}
+      <td>${p.events?.length||0}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openModal(title, id){
+  document.getElementById('edit-modal-title').textContent = title;
+  const modal = document.getElementById('edit-modal');
+  const box = modal.querySelector('.modal-box');
+  if(box) box.classList.toggle('event-modal', id === 'event-view');
+  modal.classList.add('show');
+}
+function closeModal(){
+  const modal = document.getElementById('edit-modal');
+  modal.classList.remove('show');
+  const box = modal.querySelector('.modal-box');
+  if(box) box.classList.remove('event-modal');
+}
+document.getElementById('edit-modal').addEventListener('click', e => {
+  if(e.target === document.getElementById('edit-modal')) closeModal();
+});
+
+function showRes(id, msg, isErr=false){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.display = 'block';
+  el.className = 'res-area '+(isErr?'err':'ok');
+  el.textContent = msg;
+}
+
+
+
+function fieldValue(id){
+  const el = document.getElementById(id);
+  return (el?.value || '').trim();
+}
+function markInvalid(id, invalid=true){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('invalid', invalid);
+}
+function requireFields(fields, resId){
+  for(const f of fields){
+    const id = Array.isArray(f) ? f[0] : f;
+    const name = Array.isArray(f) ? f[1] : f;
+    const value = fieldValue(id);
+    markInvalid(id, !value);
+    if(!value){
+      const msg = `${name} is mandatory. Please fill it.`;
+      if(resId) showRes(resId, msg, true);
+      toast(msg, 'error');
+      document.getElementById(id)?.focus();
+      return false;
+    }
+  }
+  return true;
+}
+function requireNumberField(id, name, min=1, resId){
+  const value = Number(fieldValue(id));
+  const invalid = !Number.isFinite(value) || value < min;
+  markInvalid(id, invalid);
+  if(invalid){
+    const msg = `${name} is mandatory and must be at least ${min}.`;
+    if(resId) showRes(resId, msg, true);
+    toast(msg, 'error');
+    document.getElementById(id)?.focus();
+    return false;
+  }
+  return true;
+}
+function validatePhoneValue(v){ return /^[0-9]{10}$/.test((v||'').trim()); }
+function validateEmailValue(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v||'').trim()); }
+function requirePhone(id, name, resId){
+  const ok = validatePhoneValue(fieldValue(id));
+  markInvalid(id, !ok);
+  if(!ok){ const msg = `${name} is mandatory and must be a valid 10 digit number.`; if(resId) showRes(resId,msg,true); toast(msg,'error'); document.getElementById(id)?.focus(); return false; }
+  return true;
+}
+function requireEmail(id, name, resId){
+  const ok = validateEmailValue(fieldValue(id));
+  markInvalid(id, !ok);
+  if(!ok){ const msg = `${name} is mandatory and must be a valid email address.`; if(resId) showRes(resId,msg,true); toast(msg,'error'); document.getElementById(id)?.focus(); return false; }
+  return true;
+}
+
+function fmtErr(e){
+  if(typeof e==='string') return e;
+  return e?.message || e?.error || JSON.stringify(e);
+}
+
+function errMsg(e){
+  return `<div class="empty-state"><span class="empty-icon">⚠️</span>${fmtErr(e)}</div>`;
+}
+
+/* ════════════════════════════════
+   PARTICIPANT REGISTER (from login page)
+════════════════════════════════ */
+// Note: Participant portal shows "Name" in username field.
+// If they don't exist, show a register option.
+// We patch the auth error to offer registration.
+const _origLogin = doLogin;
+</script>
+
+<!-- Participant Register Modal (shown if not found) -->
+<div class="modal-overlay" id="reg-modal">
+  <div class="modal-box register-modal">
+    <div class="modal-header">
+      <div class="modal-title" id="reg-modal-title">Register as Participant</div>
+      <button class="modal-close" onclick="document.getElementById('reg-modal').classList.remove('show')">✕</button>
+    </div>
+
+    <div id="register-step-details">
+      <div class="info-box" style="margin-bottom:14px">
+        Fill participant details, choose accommodation if needed, then complete payment below. The participant is registered only after UPI/Card payment details are entered.
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="req">Full Name</label><input id="rg-name" required placeholder="Your full name"/></div>
+        <div class="fg"><label class="req">Phone</label><input id="rg-phone" required placeholder="9876543210"/></div>
+        <div class="fg"><label class="req">Email</label><input id="rg-email" required placeholder="you@example.com"/></div>
+        <div class="fg"><label class="req">College</label><input id="rg-college" required placeholder="Your college name"/></div>
+        <div class="fg"><label class="req">Address</label><input id="rg-address" required placeholder="Your address"/></div>
+        <div class="fg"><label class="req">Department</label><input id="rg-department" required placeholder="Your department"/></div>
+        <div class="fg"><label>Accommodation?</label>
+          <select id="rg-acc" onchange="document.getElementById('rg-days-wrap').style.display=this.value==='yes'?'block':'none'; updateRegisterPaymentTotal();">
+            <option value="no">No</option>
+            <option value="yes">Yes (Rs.350/day)</option>
+          </select>
+        </div>
+        <div class="fg" id="rg-days-wrap" style="display:none"><label class="req">Days</label><input id="rg-days" required min="1" type="number" placeholder="e.g. 2" oninput="updateRegisterPaymentTotal()"/></div>
+      </div>
+
+      <div class="register-payment-panel" style="margin-top:16px">
+        <h4>💳 Payment Details</h4>
+        <div class="info-box">
+          Pay once during participant registration. Symposium fee is Rs.750. Accommodation adds Rs.350 per day. After this, the student can enroll in any number of events without extra event payment.
+        </div>
+        <div class="table-wrap" style="margin:12px 0">
+          <table>
+            <tbody>
+              <tr><th>Symposium Fee</th><td>Rs.750</td></tr>
+              <tr><th>Accommodation Fee</th><td id="rg-pay-accommodation-label">Rs.0</td></tr>
+              <tr><th>Total Payable</th><td><strong id="rg-pay-total-label">Rs.750</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label class="req">Payment Method</label>
+            <select id="rg-pay-method" onchange="togglePaymentFields('rg-pay')">
+              <option value="UPI">UPI</option>
+              <option value="CARD">Card</option>
+            </select>
+          </div>
+          <div class="fg"><label class="req">Total Amount</label><input id="rg-pay-amount" type="number" min="750" value="750" readonly/></div>
+        </div>
+        <div id="rg-pay-upi" class="payment-block">
+          <div class="form-row">
+            <div class="fg"><label class="req">UPI ID</label><input id="rg-pay-upi-id" placeholder="name@bank"/></div>
+            <div class="fg"><label class="req">UPI Transaction ID</label><input id="rg-pay-upi-txn" placeholder="Txn reference number"/></div>
+          </div>
+        </div>
+        <div id="rg-pay-card" class="payment-block" style="display:none">
+          <div class="form-row">
+            <div class="fg"><label class="req">Card Holder Name</label><input id="rg-pay-card-holder" placeholder="Name on card"/></div>
+            <div class="fg"><label class="req">Card Number</label><input id="rg-pay-card-number" maxlength="19" placeholder="1234 5678 9012 3456"/></div>
+            <div class="fg"><label class="req">Expiry</label><input id="rg-pay-card-expiry" placeholder="MM/YY"/></div>
+            <div class="fg"><label class="req">CVV</label><input id="rg-pay-card-cvv" type="password" maxlength="4" placeholder="123"/></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doRegister()" id="reg-btn">✅ Pay Rs.750 & Register</button>
+        <button class="btn btn-outline" onclick="document.getElementById('reg-modal').classList.remove('show')">Cancel</button>
+      </div>
+    </div>
+
+
+    <div class="res-area" id="rg-res"></div>
+  </div>
+</div>
+
+<script>
+// Override participant login to offer registration if not found
+async function doLogin(){
+  const user = document.getElementById('auth-user').value.trim();
+  const pass = document.getElementById('auth-pass').value.trim();
+  if(!user || !pass){ showAuthError('Please fill in all fields.'); return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  btn.disabled = true;
+
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  try {
+    if(S.loginRole === 'admin'){
+      await apiReq('POST','/admin/login',{username:user,password:pass},{});
+      S.role = 'admin'; S.username = user; S.password = pass;
+      toast('Welcome, Admin!','success');
+      launchApp();
+    } else if(S.loginRole === 'dept'){
+      const r = await apiReq('POST','/department/login',{username:user,password:pass},{});
+      S.role = 'dept'; S.username = user; S.password = pass;
+      S.deptId = r.departmentId; S.deptName = r.departmentName;
+      toast('Welcome, '+r.departmentName+'!','success');
+      launchApp();
+    } else {
+      // Participant password format: registered name + first 3 digits of phone number
+      const check = await apiReq('GET',`/participants/check-name?name=${encodeURIComponent(user)}`,null,{});
+      if(!check.exists){
+        // Offer registration
+        errEl.innerHTML = `Not registered yet. <a href="#" onclick="openRegister('${encodeURIComponent(user)}')" style="color:#818cf8;font-weight:700">Register now →</a>`;
+        errEl.style.display = 'block';
+        return;
+      }
+      const r = await apiReq('POST','/participants/login',{username:user,password:pass},{});
+      S.role = 'participant'; S.username = user; S.password = pass;
+      S.participantId = r.participantId;
+      S.participantName = r.name;
+      toast('Welcome, '+S.participantName+'!','success');
+      launchApp();
+    }
+  } catch(e){
+    showAuthError(e.message || e.error || 'Invalid credentials.');
+  } finally {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+}
+
+function getRegisterPaymentAmount(){
+  const wants = document.getElementById('rg-acc')?.value === 'yes';
+  const rawDays = Number(fieldValue('rg-days') || 0);
+  const days = wants ? Math.max(1, rawDays || 1) : 0;
+  const accommodationFee = days * 350;
+  return { days, accommodationFee, total: 750 + accommodationFee };
+}
+
+function updateRegisterPaymentTotal(){
+  const { accommodationFee, total } = getRegisterPaymentAmount();
+  const amountEl = document.getElementById('rg-pay-amount');
+  if(amountEl) amountEl.value = total;
+  const totalLabel = document.getElementById('rg-pay-total-label');
+  if(totalLabel) totalLabel.textContent = 'Rs.' + total;
+  const accLabel = document.getElementById('rg-pay-accommodation-label');
+  if(accLabel) accLabel.textContent = 'Rs.' + accommodationFee;
+  const btn = document.getElementById('reg-btn');
+  if(btn && !btn.disabled) btn.textContent = '✅ Pay Rs.' + total + ' & Register';
+}
+
+function openRegister(prefillName){
+  const modal = document.getElementById('reg-modal');
+  modal.classList.add('show');
+  document.getElementById('reg-modal-title').textContent = 'Register as Participant';
+  document.getElementById('register-step-details').style.display = 'block';
+  document.getElementById('rg-res').style.display = 'none';
+  document.getElementById('rg-res').textContent = '';
+  if(prefillName) document.getElementById('rg-name').value = decodeURIComponent(prefillName);
+  updateRegisterPaymentTotal();
+  togglePaymentFields('rg-pay');
+}
+
+function validateRegisterDetails(){
+  if(!requireFields([['rg-name','Full Name'],['rg-phone','Phone'],['rg-email','Email'],['rg-college','College'],['rg-address','Address'],['rg-department','Department']], 'rg-res')) return false;
+  if(!requirePhone('rg-phone','Phone','rg-res')) return false;
+  if(!requireEmail('rg-email','Email','rg-res')) return false;
+  const wants = document.getElementById('rg-acc').value === 'yes';
+  if(wants && !requireNumberField('rg-days','Days',1,'rg-res')) return false;
+  return true;
+}
+
+function goToRegisterPaymentStep(){
+  if(!validateRegisterDetails()) return;
+  updateRegisterPaymentTotal();
+  document.getElementById('rg-res').style.display = 'none';
+}
+
+function backToRegisterDetails(){
+  document.getElementById('reg-modal-title').textContent = 'Register as Participant';
+  document.getElementById('register-step-details').style.display = 'block';
+  document.getElementById('rg-res').style.display = 'none';
+}
+
+async function doRegister(){
+  if(!validateRegisterDetails()) return;
+  updateRegisterPaymentTotal();
+  const payment = collectPayment('rg-pay','rg-res');
+  if(!payment) return;
+
+  const name  = fieldValue('rg-name');
+  const phone = fieldValue('rg-phone');
+  const email = fieldValue('rg-email');
+  const collegeName = fieldValue('rg-college');
+  const address = fieldValue('rg-address');
+  const departmentName = fieldValue('rg-department');
+  const wants = document.getElementById('rg-acc').value === 'yes';
+  const days  = wants ? parseInt(fieldValue('rg-days')) : 0;
+
+  const btn = document.getElementById('reg-btn');
+  btn.innerHTML='<span class="spinner"></span> Processing payment…'; btn.disabled=true;
+  try {
+    const r = await apiReq('POST','/participants/register',{
+      name, phone, email, collegeName, address, departmentName,
+      wantsAccommodation:wants,
+      accommodationDays:days,
+      paymentMethod: payment.method,
+      paymentDetails: payment.details
+    },{});
+    showRes('rg-res',`✅ Payment successful and participant registered!\nParticipant ID: #${r.participantId}\nPassword: ${name + phone.replace(/\D/g,'').slice(0,3)}`);
+    toast('Payment done. Registered ID: #'+r.participantId,'success');
+    S.role='participant'; S.username=name; S.password='';
+    S.participantId=r.participantId; S.participantName=name;
+    setTimeout(()=>{
+      document.getElementById('reg-modal').classList.remove('show');
+      launchApp();
+    },1800);
+  } catch(e){
+    showRes('rg-res',fmtErr(e),true); toast('Registration failed','error');
+  } finally { btn.disabled=false; updateRegisterPaymentTotal(); }
+}
+</script>
+</body>
+</html>
